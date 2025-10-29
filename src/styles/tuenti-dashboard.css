@@ -1,0 +1,413 @@
+/* Estilos específicos para el dashboard de Tuenti */
+.dashboard-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.tuenti-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr 300px;
+  gap: 20px;
+  min-height: calc(100vh - 140px);
+}
+
+/* Mantener estilo de card solo en el sidebar derecho */
+.tuenti-right-sidebar {
+  background-color: white;
+  padding: 15px;
+  height: 100%;
+}
+
+/* El sidebar izquierdo usa su propio estilo en tuenti-left-sidebar.css */
+.tuenti-left-sidebar {
+  padding: 0;
+  height: 100%;
+}
+
+.tuenti-main-content {
+  background-color: white;
+  padding: 20px;
+}
+
+/* Estilos específicos del perfil */
+.profile-photo-section {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.profile-main-photo {
+  width: 100%;
+  max-width: 250px;
+  height: auto;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+}
+
+.profile-section {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.profile-section:last-child {
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.section-content {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+.empty-message {
+  margin-bottom: 5px;
+}
+
+.link-blue {
+  color: #4a90e2;
+  text-decoration: none;
+}
+
+.link-blue:hover {
+  text-decoration: underline;
+}
+
+.info-subsection {
+  margin-bottom: 15px;
+}
+
+.subsection-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.info-label {
+  color: #666;
+  font-size: 12px;
+}
+
+.info-value {
+  color: #333;
+  font-size: 12px;
+  font-weight: normal;
+}
+
+/* Columna central */
+.profile-header {
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+
+.profile-tabs {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.tab-link {
+  color: #4a90e2;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+.tab-link:hover {
+  text-decoration: underline;
+}
+
+.edit-profile {
+  margin-left: auto;
+}
+
+.status-update-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+.status-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-input {
+  flex: 1;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 8px 10px;
+  font-size: 13px;
+  background-color: white;
+}
+
+.status-input:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.status-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.status-btn {
+  background: none;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.personal-space-section,
+.board-section {
+  margin-bottom: 20px;
+}
+
+.board-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.board-tab {
+  color: #333;
+  font-weight: bold;
+}
+
+.board-tab-link {
+  color: #4a90e2;
+  text-decoration: none;
+}
+
+.board-tab-link:hover {
+  text-decoration: underline;
+}
+
+/* Columna derecha */
+.friends-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.friend-item {
+  text-align: center;
+  font-size: 11px;
+}
+
+.friend-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 3px;
+  object-fit: cover;
+  margin-bottom: 5px;
+}
+
+.friend-name {
+  color: #4a90e2;
+  line-height: 1.2;
+}
+
+.friends-footer {
+  text-align: center;
+  font-size: 12px;
+}
+
+.dashboard-sidebar {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  padding: 0;
+  height: fit-content;
+}
+
+.dashboard-main-content {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+  min-height: 400px;
+  padding: 0;
+}
+
+.dashboard-post {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 15px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.dashboard-post:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.dashboard-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #5785B6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.dashboard-user-name {
+  color: #5785B6;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.dashboard-user-name:hover {
+  text-decoration: underline;
+}
+
+.dashboard-post-content {
+  color: #333;
+  line-height: 1.4;
+  margin: 10px 0;
+}
+
+.dashboard-post-time {
+  color: #999;
+  font-size: 12px;
+}
+
+.dashboard-navigation {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.dashboard-nav-item {
+  padding: 10px 15px;
+  border-bottom: 1px solid #f0f0f0;
+  color: #333;
+  text-decoration: none;
+  display: block;
+  transition: background-color 0.2s;
+}
+
+.dashboard-nav-item:hover {
+  background-color: #f8f8f8;
+}
+
+.dashboard-nav-item.active {
+  background-color: #5785B6;
+  color: white;
+}
+
+.dashboard-nav-item:last-child {
+  border-bottom: none;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .tuenti-layout {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .tuenti-left-sidebar,
+  .tuenti-right-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-content {
+    padding: 0;
+  }
+  
+  .tuenti-layout {
+    padding: 5px;
+    gap: 10px;
+  }
+  
+  .dashboard-sidebar,
+  .dashboard-main-content {
+    margin-bottom: 10px;
+  }
+}
+
+/* Loading states */
+.dashboard-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #999;
+}
+
+/* Form elements */
+.dashboard-form-group {
+  margin-bottom: 15px;
+}
+
+.dashboard-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.dashboard-input:focus {
+  outline: none;
+  border-color: #5785B6;
+  box-shadow: 0 0 0 2px rgba(87, 133, 182, 0.2);
+}
+
+.dashboard-button {
+  background-color: #5785B6;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.dashboard-button:hover {
+  background-color: #4a7299;
+}
+
+.dashboard-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}

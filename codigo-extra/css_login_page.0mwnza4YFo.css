@@ -1,0 +1,1870 @@
+.hide {
+  display:none!important
+}
+.loadingPage .canvas {
+  position:absolute;
+  top:-100000px;
+  left:-100000px;
+  display:none
+}
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+samp,
+small,
+strong,
+sub,
+sup,
+tt,
+var,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td {
+  margin:0;
+  padding:0;
+  border:0;
+  font-weight:inherit;
+  font-style:inherit;
+  font-size:100.01%;
+  font-family:inherit;
+  vertical-align:baseline
+}
+:focus {
+  outline:0
+}
+ul {
+  list-style:none
+}
+input,
+textarea {
+  margin:0;
+  padding:0
+}
+html {
+  min-height:100%
+}
+body {
+  line-height:1.5;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:11px;
+  color:#333
+}
+h1 {
+  background:transparent url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/login_logo.BwCnXTHKAY.png) no-repeat center;
+  text-indent:-20000px;
+  height:40px
+}
+h1 a {
+  display:block;
+  height:45px;
+  width:300px;
+  text-indent:-5000px
+}
+h2 {
+  border-bottom:1px solid #d9d9d9;
+  font-size:16px;
+  font-weight:normal;
+  line-height:14px;
+  padding:0 0 8px 0;
+  margin:0 0 15px 0;
+  color:#333
+}
+h3 {
+  margin-bottom:6px;
+  font-size:14px;
+  color:#9a9a9a;
+  font-weight:bold
+}
+p {
+  font-size:12px;
+  line-height:18px;
+  color:#8a8a8a
+}
+strong {
+  font-weight:bold
+}
+a {
+  color:#2c61a3;
+  text-decoration:none
+}
+a:hover {
+  text-decoration:underline
+}
+div.cover {
+  width:730px;
+  height:260px;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin:-130px 0 0 -370px;
+  z-index:0
+}
+div.cover .description {
+  width:315px;
+  height:200px;
+  float:left;
+  border-right:1px solid #4d79a2;
+  text-align:right;
+  padding:32px 50px 30px 0
+}
+div.cover .description h2 {
+  clear:both;
+  font-size:17px
+}
+div.cover .description p {
+  font-size:14px;
+  line-height:1.4em
+}
+div.cover .mainPoints {
+  width:315px;
+  float:left;
+  border-left:1px solid #6590b7;
+  height:200px;
+  padding:30px 0 30px 45px
+}
+div.cover .mainPoints ul li {
+  padding-left:60px;
+  margin:0 0 25px 0;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/login.mDf9-eMYyj.png) no-repeat
+}
+div.cover .mainPoints ul li.social {
+  background-position:-339px 5px
+}
+div.cover .mainPoints ul li.local {
+  padding:0;
+  background-position:-339px -94px
+}
+div.cover .mainPoints ul li.local {
+  padding-left:60px;
+  display:block
+}
+div.cover .mainPoints ul li.local a:hover h3 {
+  text-decoration:underline
+}
+div.cover .mainPoints ul li.local a:hover p {
+  text-decoration:underline
+}
+div.cover .mainPoints ul li.xlocal {
+  padding:0;
+  background-position:-339px -94px
+}
+div.cover .mainPoints ul li.xlocal a {
+  padding-left:60px;
+  display:block
+}
+div.cover .mainPoints ul li.xlocal a:hover h3 {
+  text-decoration:underline
+}
+div.cover .mainPoints ul li.xlocal a:hover p {
+  text-decoration:underline
+}
+div.cover .mainPoints ul li.mobile {
+  background-position:-339px -199px
+}
+div.cover h1 {
+  width:273px;
+  height:69px;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/login.mDf9-eMYyj.png) no-repeat;
+  display:block;
+  text-indent:-10000px;
+  text-align:left;
+  float:right;
+  margin:0 0 35px 0;
+  *margin:0
+}
+div.cover h2 {
+  font-size:16px;
+  font-weight:bold;
+  text-shadow:-1px 1px #4a7399;
+  color:#FFF;
+  border:0;
+  padding:0;
+  margin-bottom:5px
+}
+div.cover h3 {
+  font-size:15px;
+  font-weight:bold;
+  text-shadow:0 1px #4a7399;
+  color:#FFF;
+  border:0;
+  padding:0;
+  margin-bottom:0
+}
+div.cover p,
+div.cover p a {
+  font-size:12px;
+  color:#b6cddd;
+  line-height:1.2em
+}
+div.login {
+  float:right;
+  width:410px;
+  position:relative;
+  z-index:1;
+  padding:25px
+}
+div.login .body {
+  margin:0 0 5px 0
+}
+div.login li {
+  margin:0 5px 0 0;
+  width:160px;
+  float:left
+}
+div.login li.buttons {
+  text-align:right;
+  width:80px;
+  margin-right:0
+}
+div.login li.indent {
+  float:none;
+  clear:both;
+  width:100%;
+  display:block;
+  margin-bottom:15px
+}
+div.login li a {
+  display:block
+}
+div.login .inputLabel {
+  color:#3c6287;
+  font-weight:bold;
+  text-shadow:0 1px #7da6c9;
+  padding:0 0 5px 0
+}
+div.login input {
+  border:0;
+  font-size:14px;
+  color:#333;
+  padding:7px 6px;
+  width:148px;
+  margin:0 0 5px 0;
+  background:#FFF url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/button.ZVSdmPMuDK.png) repeat-x 0 -611px
+}
+div.login input.hint {
+  color:#CCC
+}
+label.rememberMe {
+  *position:relative;
+  *top:-4px;
+  *left:-4px
+}
+div.login input.rememberMe {
+  background:0;
+  width:auto;
+  border:0;
+  font-size:small;
+  margin-right:3px;
+  vertical-align:middle;
+  padding:0
+}
+div.login label {
+  color:#FFF;
+  vertical-align:middle;
+  font-weight:normal
+}
+div.login a {
+  color:#b6cddd
+}
+div.login a:hover {
+  text-decoration:underline;
+  color:#FFF
+}
+div.login .submit {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/login.mDf9-eMYyj.png) no-repeat -4px -100px;
+  width:80px;
+  height:32px;
+  color:#FFF;
+  text-shadow:0 -1px #8bc0d9;
+  font-size:12px;
+  position:relative;
+  top:-1px;
+  padding:0 2px 1px 0
+}
+div.login .submit.withLabels {
+  margin-top:18px
+}
+div.login .submit:hover {
+  background-position:-4px -139px
+}
+div.login .submit:active {
+  background-position:-4px -100px
+}
+div.login.disabled .submit {
+  width:auto
+}
+div.login .error {
+  color:#6b282c;
+  padding-top:5px
+}
+div.login .getAccount {
+  border-top:1px solid #5483ad;
+  font-size:11px;
+  font-weight:bold;
+  text-shadow:0 1px #4a7399;
+  text-align:right;
+  margin-top:5px
+}
+div.login .getAccount .border {
+  border-top:1px solid #6897c0;
+  padding-top:5px
+}
+div.login .getAccount a {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/login.mDf9-eMYyj.png) no-repeat -95px -103px;
+  padding-left:17px
+}
+.alert {
+  position:absolute;
+  z-index:100;
+  top:24px;
+  right:24px;
+  background:#2a4966;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px;
+  border-radius:4px;
+  -moz-box-shadow:0 1px 0 0 rgba(255,255,255,0.2);
+  padding:20px
+}
+.alert .icon {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/login.mDf9-eMYyj.png) no-repeat -260px -108px;
+  width:40px;
+  height:90px;
+  padding-right:16px;
+  border-right:1px solid #556d85;
+  float:left
+}
+.alert .alertContent {
+  display:block;
+  overflow:hidden;
+  padding:0 0 0 20px
+}
+.alert .alertContent h3 {
+  font-size:12px;
+  font-weight:bold;
+  text-shadow:0 1px #4a7399;
+  color:#FFF;
+  border:0;
+  padding:0;
+  margin-bottom:5px
+}
+.alert .alertContent p {
+  font-size:11px;
+  color:#b6cddd;
+  line-height:1.5em
+}
+.alert .alertContent p a {
+  white-space:nowrap;
+  text-decoration:underline
+}
+ul.wantsEnter {
+  text-align:center
+}
+ul.wantsEnter li {
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  vertical-align:middle
+}
+.passwordCanvas ul.wantsEnter li.first,
+.needInvitesCanvas ul.wantsEnter li.first {
+  padding-left:10px
+}
+ul.wantsEnter li a {
+  color:#b6cddd;
+  padding:6px 6px;
+  display:block;
+  font-weight:normal;
+  position:relative
+}
+ul.wantsEnter a:hover {
+  margin-top:-1px;
+  padding-top:7px
+}
+.canvas {
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:392px;
+  margin-left:-196px;
+  margin-top:-145px
+}
+.canvas.password {
+  margin-top:-225px
+}
+.canvas div.legalInfo {
+  background:#FFF;
+  padding:15px;
+  width:auto;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px
+}
+.canvas .legalInfo p {
+  font-size:11px;
+  color:#666
+}
+div.canvas .body {
+  margin:auto;
+  background:#4c759b;
+  border:6px solid #4c759b;
+  margin:15px 0 0;
+  -moz-border-radius:4px;
+  -webkit-border-radius:4px
+}
+.canvas .body form {
+  background:#FFF;
+  padding:15px;
+  width:auto;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px
+}
+.canvas .body form label {
+  display:block;
+  float:left;
+  font-size:12px;
+  margin:0 10px 0 0;
+  padding:8px 0;
+  text-align:right;
+  width:70px;
+  color:#7e7e7e;
+  font-weight:normal
+}
+.canvas .body form label.rememberMe {
+  width:230px;
+  padding:0;
+  margin:0;
+  text-align:left;
+  line-height:17px;
+  font-size:11px;
+  height:26px
+}
+.canvas .body form input {
+  margin:0
+}
+.canvas .body form input.email {
+  width:240px;
+  padding:5px;
+  font-size:15px
+}
+.canvas .body form input.password {
+  width:240px;
+  padding:5px;
+  font-size:15px
+}
+.canvas .body form input.captcha {
+  width:140px;
+  padding:5px;
+  font-size:15px;
+  margin:0 4px 0 0
+}
+.canvas .body form input.error {
+  width:240px;
+  padding:5px;
+  font-size:15px;
+  border-color:#e58080
+}
+.canvas .body form input.rememberMe {
+  background:0;
+  width:auto;
+  border:0;
+  font-size:small;
+  margin-right:3px;
+  vertical-align:middle;
+  position:relative;
+  top:-2px;
+  padding:0
+}
+.canvas .body form span.input {
+  padding:3px;
+  background-color:#f5f5f5;
+  display:inline-block;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+  width:252px
+}
+.canvas .body form ul li {
+  clear:both;
+  margin:0 0 6px 0;
+  height:1%;
+  overflow:hidden
+}
+.canvas .body form ul li.indent {
+  padding:2px 0 0 80px;
+  margin:0
+}
+.canvas .body form ul li.buttons {
+  padding:0 0 0 80px;
+  text-align:left;
+  margin:0
+}
+.canvas p {
+  margin:0 0 10px 0
+}
+.canvas .errorMessage {
+  background-color:#fff;
+  margin:15px 0 0 0;
+  border:6px solid #4c759b;
+  position:absolute;
+  text-align:center;
+  width:380px;
+  height:188px;
+  z-index:10000000;
+  -moz-border-radius:5px;
+  -webkit-border-radius:5px
+}
+.canvas .errorMessage.deactivate,
+.canvas .errorMessage.deactivate .feedBack .feedBackBody {
+  height:auto
+}
+.canvas .errorMessage.reactivate {
+  position:static
+}
+.canvas .errorMessage.reactivate .buttons {
+  text-align:center;
+  margin-left:-26px
+}
+.canvas .feedBack {
+  padding:1px;
+  margin:0;
+  background-color:#FFF;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px
+}
+.canvas .feedBack .feedBackContent {
+  background:#ffca64 url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/icon/feedback.gcpK_-ELCv.png) no-repeat -80px 0
+}
+.canvas .feedBack .feedBackBody {
+  margin-left:39px;
+  border-color:#ffb545;
+  overflow:hidden;
+  border-left:1px solid #FFF;
+  background-color:#FFF;
+  padding:12px 15px 0;
+  font-size:12px;
+  height:174px;
+  width:308px;
+  text-align:left
+}
+.feedBack .feedBackBody h3 {
+  border-bottom:1px solid #d9d9d9;
+  font-size:13px;
+  line-height:13px;
+  padding:2px 0 8px 0;
+  margin:0 0 10px 0;
+  color:#333
+}
+.feedBack .feedBackBody p {
+  padding:0 0 10px 0
+}
+div.captcha {
+  -moz-border-radius:0 0 3px 3px;
+  -webkit-border-radius:0 0 3px 3px;
+  background-color:#f5f5f5;
+  border-top:1px solid #ccc;
+  padding:8px 8px 4px 8px;
+  margin:10px 0 10px 80px;
+  width:140px;
+  position:relative
+}
+div.captcha img {
+  border:0;
+  margin:0;
+  padding:0;
+  width:140px
+}
+div.captcha span.arrow {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/structure.ejTe2XF_LJ.png) no-repeat scroll 0 -2016px;
+  height:6px;
+  left:72px;
+  position:absolute;
+  top:-6px;
+  width:11px
+}
+span.error {
+  color:#c00
+}
+input.link {
+  background:0;
+  padding:0;
+  border:0;
+  outline:0;
+  font-size:11px;
+  color:#2c61a3;
+  text-align:left;
+  overflow:visible;
+  line-height:normal;
+  border-bottom:1px solid #f5f5f5
+}
+input.link:hover,
+input.link:active {
+  color:#2c61a3;
+  cursor:pointer;
+  border-bottom:1px solid #2c61a3;
+  outline:0;
+  overflow:visible;
+  margin-top:1px
+}
+input.link::-moz-focus-inner {
+  border:0
+}
+#errorEmail,
+#errorPass,
+#errorCookies,
+#errorRememeberEmail,
+#errorCode,
+#problemLogin {
+  display:none
+}
+#problemLogin {
+  height:145px
+}
+#accountReactivation {
+  display:block
+}
+.hide {
+  display:none!important
+}
+#problemLogin h4 {
+  color:#333;
+  padding-top:15px
+}
+#problemLogin p {
+  padding-bottom:5px
+}
+#rememberPassword,
+#optionsBack {
+  display:none
+}
+.confirmationMessage h5,
+#rememberPassword h5,
+.needInvite h5 {
+  color:#8cc3fb;
+  margin-bottom:.5em
+}
+.confirmationMessage p {
+  color:#333
+}
+.footer {
+  width:auto;
+  position:absolute;
+  bottom:0;
+  width:100%;
+  left:0;
+  right:0
+}
+.footerContent {
+  margin:25px 25px 0 25px;
+  border-top:1px solid #4d79a2
+}
+.tuFooter .footerContent {
+  margin:25px 25px 0 25px;
+  border-bottom:1px solid #4d79a2;
+  border-top:0
+}
+.footer.tuFooter ul {
+  text-align:center;
+  color:#d8e8f3;
+  padding:10px 0;
+  padding-bottom:35px;
+  border:0
+}
+.footer ul {
+  text-align:center;
+  color:#d8e8f3;
+  padding:10px 0 30px 0;
+  border-top:1px solid #6590b7
+}
+.footer ul ul,
+.footer.tuFooter ul ul {
+  margin:0;
+  border:0;
+  padding:0
+}
+.footer ul li {
+  width:auto;
+  display:inline;
+  float:right;
+  margin:0 0 0 10px;
+  line-height:11px
+}
+.footer ul li.copy {
+  font-weight:bold;
+  margin:0 12px 0 0;
+  float:left;
+  color:#FFF
+}
+.footer ul li.language {
+  color:#FFF;
+  float:left
+}
+.footer ul li a {
+  color:#9dbacf
+}
+.footer ul li a:hover {
+  text-decoration:none;
+  color:#FFF
+}
+.footer ul li a:hover,
+.footer ul li a {
+  -moz-transition:color .3s ease;
+  -webkit-transition:color .3s ease;
+  transition:color .3s ease
+}
+.mod.footerRibbon {
+  margin:0;
+  height:25px;
+  overflow:hidden;
+  padding:0 0 24px 0
+}
+.tuFooter .mod.footerRibbon {
+  padding:0
+}
+.brand_footer .mod.footerRibbon {
+  float:right;
+  display:inline
+}
+.mod.footerRibbon p {
+  float:left;
+  color:#9dbacf;
+  font-size:11px;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/login_arrow.fN1etsEq_g.png) 99% 6px no-repeat;
+  margin:3px 10px 0 0;
+  padding:0 14px 0 0
+}
+.mod.footerRibbon ul {
+  border:0;
+  float:left;
+  margin:0;
+  padding:0
+}
+.tuFooter .mod.footerRibbon ul li {
+  float:left;
+  margin:0 0 0 15px;
+  padding:0
+}
+.mod.footerRibbon ul li {
+  float:left;
+  margin:0 15px 0 0;
+  padding:0
+}
+.mod.footerRibbon ul li img {
+  padding:0
+}
+input,
+textarea,
+select {
+  padding:4px;
+  color:#333;
+  font:12px Arial,Helvetica,sans-serif;
+  border:1px solid #c9c9c9;
+  background:#FFF url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/button.ZVSdmPMuDK.png) repeat-x 0 -492px;
+  -moz-border-radius:2px;
+  -webkit-border-radius:2px
+}
+input.focus,
+textarea.focus,
+select.focus,
+form input.active,
+form input.hover,
+input:focus,
+textarea:focus,
+select:focus {
+  border:1px solid #94b4d1;
+  color:#333
+}
+form input {
+  vertical-align:middle
+}
+form input.error,
+form textarea.error,
+form span.error input,
+form span.error label {
+  border:1px solid #e58080;
+  color:#c00
+}
+form label {
+  font-weight:bold
+}
+form label span {
+  font-weight:normal;
+  color:#666
+}
+button,
+input.submit {
+  padding:0;
+  margin:0;
+  border:0;
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  cursor:pointer;
+  text-decoration:none;
+  outline:0;
+  white-space:nowrap;
+  overflow:visible;
+  text-shadow:0 1px 0 #FFF;
+  vertical-align:bottom;
+  height:24px;
+  width:80px;
+  color:#666;
+  font-size:11px;
+  font-family:"Lucida Grande",Arial,Helvetica,sans-serif;
+  text-shadow:0 -1px 0 #275d87
+}
+input.submit:hover {
+  background-position:0 -24px
+}
+input.submit:active {
+  background-position:0 -48px
+}
+button.send,
+input.submit {
+  width:80px;
+  color:#FFF
+}
+input.submit {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/button_login.gWTLzkmzyM.png) repeat-x
+}
+button.send span,
+input.submit {
+  padding:0
+}
+button.send.disabled {
+  color:#FFF
+}
+button.send.disabled:hover {
+  border-color:#3b7ebb
+}
+button.send span span,
+button.disabled.send:hover span span,
+button.disabled.send:active span span {
+  margin-left:1px!important
+}
+.mod.massInviter form fieldset {
+  border-bottom:0
+}
+.note {
+  line-height:12px;
+  background-color:#ffeee3;
+  border:1px solid #ffcece;
+  -moz-border-radius:2px;
+  -webkit-border-radius:2px;
+  padding:10px;
+  color:#666;
+  text-align:center;
+  font-size:12px
+}
+.note.alert {
+  background:#fffbd9;
+  border:1px solid #f8e1b9;
+  text-align:center;
+  position:static
+}
+.warningMessage {
+  border:6px solid #4c759b;
+  border-top:0;
+  width:905px;
+  text-align:center;
+  margin:0 auto;
+  -moz-border-radius-bottomleft:5px;
+  -moz-border-radius-bottomright:5px;
+  -webkit-border-bottom-left-radius:5px;
+  -webkit-border-bottom-right-radius:5px
+}
+.warningMessage .feedBack {
+  padding:0;
+  border:1px solid #FFF;
+  border-top:0
+}
+.warningMessage .feedBack .feedBackContent {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/icon/feedback.gcpK_-ELCv.png) #ffca64 no-repeat -80px -5px
+}
+.warningMessage .feedBack .feedBackBody {
+  overflow:hidden;
+  border-left:1px solid #FFF;
+  background-color:#FFF;
+  padding:8px 10px;
+  font-size:12px;
+  _height:1%;
+  margin-left:39px;
+  border-color:#ffb545
+}
+.rojaContainer {
+  width:500px;
+  height:20px;
+  position:absolute;
+  top:50%;
+  left:50%;
+  margin:153px 0 0 -255px;
+  text-align:center
+}
+.laroja {
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  background-color:#fff;
+  border-radius:4px;
+  -webkit-border-radius:4px;
+  -moz-border-radius:4px;
+  padding:2px 8px 2px 6px
+}
+.laroja p {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/shared/la_roja.iOnSpjcu4c.png) no-repeat left 1px;
+  padding-left:22px;
+  font-weight:bold;
+  font-size:11px;
+  color:#333
+}
+.brand_footer {
+  width:auto;
+  overflow:hidden;
+  padding:24px 0 0 0;
+  border-top:1px solid #6590b7;
+  margin:0 25px 20px 25px
+}
+.tu_brand {
+  float:left;
+  display:inline;
+  width:auto;
+  overflow:hidden;
+  width:300px;
+  position:relative
+}
+.tu_brand a {
+  display:block;
+  position:absolute;
+  width:300px;
+  height:29px;
+  zoom:1;
+  background:#fff;
+  z-index:20;
+  opacity:0;
+  filter:alpha(opacity=0)
+}
+.tu_brand .itemMedia {
+  float:left;
+  display:inline;
+  margin:0 8px 0 0
+}
+.tu_brand .itemBody {
+  display:table;
+  height:1%;
+  position:relative
+}
+.tu_brand i {
+  width:29px;
+  height:29px;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/login.mDf9-eMYyj.png) no-repeat -10px -264px
+}
+.tu_brand strong {
+  font-size:12px;
+  color:#fff;
+  text-shadow:0 1px #4a7399
+}
+.tu_brand p {
+  font-size:11px;
+  line-height:15px;
+  color:#9dbacf;
+  text-shadow:0 1px #4a7399
+}
+.tu_brand:hover p.link {
+  text-decoration:underline
+}
+.nSplash {
+  background:#54779f url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/noise.KmQE111qYh.png) repeat left top;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/noise.KmQE111qYh.png) repeat left top,-moz-radial-gradient(center,circle cover,#6e90bc 0,#426990 100%);
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/noise.KmQE111qYh.png) repeat left top,-webkit-radial-gradient(center,circle cover,#5e90bc 0,#426990 100%);
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/noise.KmQE111qYh.png) repeat left top,radial-gradient(center,circle cover,#5e90bc 0,#426990 100%);
+  position:absolute;
+  left:0;
+  right:0;
+  top:0;
+  bottom:0
+}
+.nSplash .login {
+  background:0
+}
+.nSplash .login .body {
+  position:relative;
+  z-index:2
+}
+.nSplash .login li {
+  position:relative
+}
+.nSplash .login li a,
+.nSplash .login li label {
+  color:#fff;
+  -moz-text-shadow:0 1px 0 rgba(0,0,0,0.3);
+  -webkit-text-shadow:0 1px 0 rgba(0,0,0,0.3);
+  text-shadow:0 1px 0 rgba(0,0,0,0.3)
+}
+.nSplash .login .inputLabel {
+  font-size:13px;
+  line-height:16px;
+  font-weight:normal;
+  -moz-text-shadow:none;
+  -webkit-text-shadow:none;
+  text-shadow:none;
+  color:#666;
+  cursor:text;
+  position:absolute;
+  left:8px;
+  top:10px
+}
+.nSplash .login span.input {
+  display:block
+}
+.nSplash .login span.input input,
+.nSplash .login .inputLabel {
+  -webkit-transition:all .4s ease-out;
+  transition:all .4s ease-out
+}
+.nSplash .login span.input input {
+  font-size:13px;
+  border:solid 1px #43698f;
+  border-top-color:#274b5a;
+  -webkit-box-shadow:0 1px 0 0 rgba(255,255,255,0.2),0 6px 5px -5px rgba(0,0,0,0.5) inset;
+  box-shadow:0 1px 0 0 rgba(255,255,255,0.2),0 6px 5px -5px rgba(0,0,0,0.5) inset;
+  -moz-box-shadow:0 1px 0 0 rgba(255,255,255,0.2),0 6px 3px -5px rgba(0,0,0,0.5) inset;
+  background:#fff;
+  -moz-border-radius:3px;
+  -webkit-border-radius:3px;
+  border-radius:5px;
+  width:144px;
+  height:18px
+}
+.nSplash .login span.input.focus input {
+  -webkit-box-shadow:0 1px 0 0 rgba(255,255,255,0.2),0 6px 5px -5px rgba(0,0,0,0.5) inset,0 0 15px -3px rgba(255,255,255,0.6);
+  box-shadow:0 1px 0 0 rgba(255,255,255,0.2),0 6px 5px -5px rgba(0,0,0,0.5) inset,0 0 15px -3px rgba(255,255,255,0.6);
+  -moz-box-shadow:0 1px 0 0 rgba(255,255,255,0.2),0 6px 3px -5px rgba(0,0,0,0.5) inset,0 0 15px -3px rgba(255,255,255,0.6)
+}
+.nSplash .login .focus .inputLabel {
+  color:#000;
+  opacity:.3;
+  filter:alpha(opacity=30)
+}
+.nSplash .login .filled .inputLabel {
+  display:none
+}
+.nSplash .login .submit,
+.sharedWindow .login .submit {
+  background:#81c9ed;
+  background:-moz-linear-gradient(top,rgba(144,206,234,1) 0,rgba(115,197,239,1) 100%);
+  background:-webkit-linear-gradient(top,rgba(144,206,234,1) 0,rgba(115,197,239,1) 100%);
+  background:linear-gradient(top,rgba(144,206,234,1) 0,rgba(115,197,239,1) 100%);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#90ceea',endColorstr='#73c5ef',GradientType=0);
+  -moz-box-shadow:1px 1px 1px 0 rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.3),inset 0 0 0 1px rgba(255,255,255,0.2);
+  -webkit-box-shadow:1px 1px 1px 0 rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.3),inset 0 0 0 1px rgba(255,255,255,0.2);
+  box-shadow:1px 1px 1px 0 rgba(0,0,0,0.1),inset 0 1px 0 rgba(255,255,255,0.3),inset 0 0 0 1px rgba(255,255,255,0.2);
+  top:0;
+  height:34px
+}
+.nSplash .login .submit:hover,
+.sharedWindow .login .submit:hover {
+  background:#83caec;
+  background:-moz-linear-gradient(top,rgba(128,203,234,1) 0,rgba(98,196,239,1) 100%);
+  background:-webkit-linear-gradient(top,rgba(128,203,234,1) 0,rgba(98,196,239,1) 100%);
+  background:linear-gradient(top,rgba(128,203,234,1) 0,rgba(98,196,239,1) 100%);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#80cbea',endColorstr='#62c4ef',GradientType=0)
+}
+.nSplash .login .submit:active,
+.sharedWindow .login .submit:active {
+  background:-moz-linear-gradient(top,rgba(144,206,234,1) 0,rgba(115,197,239,1) 100%);
+  background:-webkit-linear-gradient(top,rgba(144,206,234,1) 0,rgba(115,197,239,1) 100%);
+  background:linear-gradient(top,rgba(144,206,234,1) 0,rgba(115,197,239,1) 100%);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#90ceea',endColorstr='#73c5ef',GradientType=0)
+}
+.nSplash .login .getAccount {
+  border-top-color:#426386;
+  border-top:1px solid rgba(0,0,0,0.1);
+  font-weight:normal;
+  color:#fff;
+  text-align:center;
+  margin-top:10px;
+  position:relative
+}
+.nSplash .login .getAccount .border {
+  padding:8px 4px 0 0;
+  text-align:right;
+  border-top-color:#5b7c9f;
+  border-top:solid 1px rgba(255,255,255,0.1)
+}
+.nSplash .login .getAccount p {
+  font-size:11px;
+  color:#fff;
+  display:inline
+}
+.nSplash .login .info {
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  vertical-align:middle;
+  width:12px;
+  height:12px;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/login.mDf9-eMYyj.png) no-repeat -95px -103px
+}
+.nSplash .login .getAccount a {
+  margin-left:4px;
+  padding:0;
+  vertical-align:middle;
+  color:#fff;
+  background:0
+}
+.nSplash .cover .description {
+  border-right-color:#426386;
+  border-right:solid 1px rgba(0,0,0,0.1)
+}
+.nSplash .cover .mainPoints {
+  border-left-color:#5b7c9f;
+  border-left:solid 1px rgba(255,255,255,0.1)
+}
+.nSplash .tuFooter .footerContent {
+  border-bottom-color:#426386;
+  border-bottom:solid 1px rgba(0,0,0,0.1)
+}
+.nSplash .brand_footer {
+  border-top-color:#5b7c9f;
+  border-top:solid 1px rgba(255,255,255,0.1)
+}
+.contLogOut {
+  left:50%;
+  margin:-220px 0 0 -512px;
+  position:absolute;
+  top:50%;
+  width:1024px;
+  height:367px;
+  overflow:hidden
+}
+.logOutCover {
+  position:relative;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/shadow.jR5mR9cZ5c.png) no-repeat center bottom;
+  background:-moz-radial-gradient(510px 311px,farthest-corner,rgba(0,0,0,0.3) 14%,rgba(0,0,0,0) 58%);
+  background:-webkit-radial-gradient(532px 470px,farthest-corner,rgba(0,0,0,0.3) 14%,rgba(0,0,0,0) 58%);
+  background:radial-gradient(510px 311px,farthest-corner,rgba(0,0,0,0.3) 14%,rgba(0,0,0,0) 58%);
+  height:367px;
+  -webkit-border-radius-bottomright:460px 100px;
+  border-bottom-right-radius:460px 100px;
+  -webkit-border-radius-bottomleft:460px 100px;
+  border-bottom-left-radius:460px 100px;
+  overflow:hidden
+}
+@-webkit-keyframes txtFade {
+  from {
+    opacity:0;
+    filter:alpha(opacity=0)
+  }
+  to {
+    opacity:1;
+    filter:alpha(opacity=1)
+  }
+}
+@-moz-keyframes txtFade {
+  from {
+    opacity:0;
+    filter:alpha(opacity=0)
+  }
+  to {
+    opacity:1;
+    filter:alpha(opacity=1)
+  }
+}
+@keyframes txtFade {
+  from {
+    opacity:0;
+    filter:alpha(opacity=0)
+  }
+  to {
+    opacity:1;
+    filter:alpha(opacity=1)
+  }
+}
+.logTxt {
+  width:328px;
+  margin:0 auto;
+  padding:30px 0 0 0
+}
+.logTxt h2 {
+  border:0;
+  font:bold 26px/20px Helvetica,Arial;
+  color:#fff;
+  text-shadow:1px 1px 0;
+  text-shadow:0 1px 0 rgba(0,0,0,0.3);
+  margin:0 0 8px 0
+}
+.logTxt p {
+  border:0;
+  font:14px/21px Helvetica,Arial;
+  color:#fff;
+  text-shadow:1px 1px 0;
+  text-shadow:0 1px 0 rgba(0,0,0,0.3);
+  letter-spacing:0
+}
+.logTxt .item {
+  width:auto;
+  overflow:hidden
+}
+.logTxt .itemMedia {
+  float:left;
+  display:inline;
+  margin:0 12px 0 0
+}
+.logTxt i {
+  display:-moz-inline-stack;
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  vertical-align:top;
+  width:37px;
+  height:37px;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/loginTu.4yDM6oHizr.png) no-repeat -175px -3px
+}
+.logTxt .itemBody {
+  display:table;
+  height:1%
+}
+.logTxt a {
+  color:#fff
+}
+.logTxt a:hover {
+  color:#FFF;
+  text-decoration:none
+}
+h1.titleLogOut {
+  float:left;
+  display:inline;
+  margin:25px 0 0 25px;
+  background:0
+}
+h1 span {
+  display:block;
+  width:132px;
+  height:31px;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/loginTu.4yDM6oHizr.png) no-repeat -5px -5px
+}
+@-webkit-keyframes bounceInUp {
+  0% {
+    background-position:0 225px
+  }
+  100% {
+    background-position:0 10px
+  }
+}
+@-moz-keyframes bounceInUp {
+  0% {
+    background-position:0 225px
+  }
+  100% {
+    background-position:0 10px
+  }
+}
+@keyframes bounceInUp {
+  0% {
+    background-position:0 225px
+  }
+  100% {
+    background-position:0 10px
+  }
+}
+.backDevice {
+  position:absolute;
+  bottom:0;
+  left:28%;
+  text-indent:-9000px
+}
+.backDevice a {
+  display:block;
+  width:438px;
+  height:228px;
+  background-repeat:no-repeat;
+  -webkit-border-radius-bottomright:142px 10px;
+  border-bottom-right-radius:142px 10px;
+  -webkit-border-radius-bottomleft:142px 13px;
+  border-bottom-left-radius:142px 13px;
+  background-position:0 15px
+}
+.backDevice.device1 a {
+  background-image:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/device1.OI42hUQrkS.png);
+  -webkit-animation:bounceInUp .5s .5s;
+  -moz-animation:bounceInUp .5s .5s;
+  animation:bounceInUp .5s .5s;
+  -webkit-animation-fill-mode:both;
+  -moz-animation-fill-mode:both;
+  animation-fill-mode:both
+}
+.backDevice.device2 a {
+  background-image:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/device2.PVc_-x_Eev.png);
+  -webkit-animation:bounceInUp .5s .5s;
+  -moz-animation:bounceInUp .5s .5s;
+  animation:bounceInUp .5s .5s;
+  -webkit-animation-fill-mode:both;
+  -moz-animation-fill-mode:both;
+  animation-fill-mode:both
+}
+.backDevice.device3 a {
+  background-image:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/login/device3.V9qApwrqi8.png);
+  -webkit-animation:bounceInUp .5s .5s;
+  -moz-animation:bounceInUp .5s .5s;
+  animation:bounceInUp .5s .5s;
+  -webkit-animation-fill-mode:both;
+  -moz-animation-fill-mode:both;
+  animation-fill-mode:both;
+  background-position:0 15px
+}
+.trace.login.css {
+  cursor:pointer
+}
+.nButtonText {
+  display:inline-block;
+  vertical-align:text-top;
+  margin:0 2px 0 0
+}
+.nButton+.nButtonText {
+  margin:0 0 0 2px
+}
+.nButton.vaBase,
+.nButton.vaBase span,
+.nButton.vaBase b {
+  vertical-align:baseline;
+  *vertical-align:middle
+}
+i+b {
+  vertical-align:middle;
+  font-weight:normal;
+  line-height:17px
+}
+.nButton::-moz-focus-inner {
+  border:0;
+  padding:0
+}
+.nButton {
+  font-family:"Lucida Grande",Arial,Helvetica,sans-serif;
+  color:#666;
+  text-shadow:none;
+  cursor:pointer;
+  border:0;
+  background:0;
+  padding:0;
+  margin:0 3px 0 0;
+  width:auto;
+  height:auto;
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  vertical-align:middle
+}
+a.nButton {
+  text-decoration:none;
+  color:#666
+}
+.nButton>span {
+  width:auto;
+  height:18px;
+  margin:0;
+  padding:0;
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  vertical-align:middle;
+  position:relative;
+  text-align:center;
+  cursor:pointer;
+  border:1px solid #CCC;
+  -webkit-border-radius:3px;
+  -moz-border-radius:3px;
+  border-radius:3px
+}
+.nButton>span,
+.nButton.disabled:active>span,
+.nButton.disabled:hover>span {
+  background:#f9f9f9;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FEFFFE',endColorstr='#E2E2E2',GradientType=0);
+  background:-webkit-gradient(linear,left bottom,left top,color-stop(0,#e2e2e2),color-stop(1,#fefffe));
+  background:-moz-linear-gradient(center bottom,#e2e2e2 0,#fefffe 100%)
+}
+.nButton:hover>span,
+.nButton.hover>span {
+  background:#fff;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff',endColorstr='#FEFFFE',GradientType=0);
+  background:-webkit-gradient(linear,left bottom,left top,color-stop(0,#f2f2f2),color-stop(1,#fff));
+  background:-moz-linear-gradient(center bottom,#f2f2f2 0,#fff 100%)
+}
+.nButton:active>span,
+.nButton.active>span {
+  background:#f0f0f0;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#E2E2E2',endColorstr='#FEFFFE',GradientType=0);
+  background:-webkit-gradient(linear,left bottom,left top,color-stop(0,#f0f0f0),color-stop(1,#d0d0d0));
+  background:-moz-linear-gradient(center bottom,#f0f0f0 0,#d0d0d0 100%)
+}
+.nButton.disabled {
+  opacity:.6;
+  cursor:default
+}
+.nButton .nHide {
+  text-indent:-9999px;
+  padding:0!important
+}
+.nButton i {
+  line-height:18px;
+  margin:0 2px
+}
+.nButton em {
+  font-style:normal
+}
+.nButton b {
+  padding:0 5px;
+  margin:0;
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  vertical-align:middle;
+  font-weight:normal;
+  text-shadow:0 1px 0 #FFF;
+  font-size:11px;
+  line-height:18px
+}
+.nButton i+b {
+  padding-left:0;
+  height:18px
+}
+.nButton b+i {
+  margin-left:0
+}
+.nButton span .nTooltip {
+  background:0;
+  border:0;
+  line-height:17px;
+  color:#fff
+}
+.nButton span .nTooltip.h-right {
+  padding-right:0
+}
+.lButton.nFeatured span span {
+  width:26px
+}
+.nButton.nFeatured>span {
+  position:relative
+}
+.nButton.nFeatured span span {
+  background-position:left top!important;
+  background:#fdb049;
+  *background:0;
+  background:-moz-linear-gradient(top,#fcc75e 0,#f93 100%);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FCC75E',endColorstr='#FF9933',GradientType=0);
+  background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#fcc75e),color-stop(100%,#f93));
+  -moz-box-shadow:inset -1px 0 0 0 rgba(255,255,255,0.5);
+  -webkit-box-shadow:inset -1px 0 0 0 rgba(255,255,255,0.5);
+  border:solid 1px #f93;
+  border-radius:3px 0 0 3px;
+  -webkit-border-radius:3px 0 0 3px;
+  -moz-border-radius:3px 0 0 3px;
+  display:inline-block;
+  zoom:1;
+  *display:inline;
+  vertical-align:middle;
+  position:absolute;
+  left:-1px;
+  top:-1px;
+  bottom:-1px;
+  height:auto;
+  width:20px;
+  padding:0;
+  margin:0
+}
+.nButton.nFeatured:hover span span,
+.nButton.nFeatured.hover span span {
+  background:#fdc058;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FFD872',endColorstr='#FFAD47',GradientType=0);
+  background:-moz-linear-gradient(top,#ffd872 0,#ffad47 100%);
+  background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#ffd872),color-stop(100%,#ffad47))
+}
+.nButton.nFeatured:active span span,
+.nButton.nFeatured.active span span {
+  background:#ffa53e;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#FF9933',endColorstr='#FCC75E',GradientType=0);
+  background:-moz-linear-gradient(top,#f93 0,#fcc75e 100%);
+  background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#f93),color-stop(100%,#fcc75e))
+}
+.nButton.nFeatured span+b {
+  padding-left:27px
+}
+.nButton.nFeatured span i {
+  position:absolute;
+  left:50%;
+  top:50%
+}
+.nButton.nFeatured span .sIcon {
+  margin:-8px 0 0 -8px
+}
+.nButton.nFeatured span .mIcon {
+  margin:-10px 0 0 -10px
+}
+.nButton.nSend>span,
+.hover .widestButton span,
+.nButton.nSend.disabled:hover>span {
+  color:#fff;
+  text-shadow:0 -1px 0 rgba(0,0,0,0.3);
+  border-color:#2e5f88;
+  -moz-box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.3);
+  -webkit-box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.3);
+  box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.3);
+  background:#5384b4;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#5A8EBD',endColorstr='#4E7CAD',GradientType=0);
+  background:-moz-linear-gradient(top,#5a8ebd 0,#4e7cad 100%);
+  background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#5a8ebd),color-stop(100%,#4e7cad));
+  min-width:80px
+}
+.nButton.nSend:hover>span,
+.nButton.nSend.hover>span {
+  background:#598cbb;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#68A3D8',endColorstr='#4F7DAE',GradientType=0);
+  background:-moz-linear-gradient(top,#68a3d8 0,#4f7dae 100%);
+  background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#68a3d8),color-stop(100%,#4f7dae))
+}
+.nButton.nSend:active>span,
+.nButton.nSend.active>span {
+  -moz-box-shadow:none;
+  -webkit-box-shadow:none;
+  box-shadow:none;
+  background:#4e7cad;
+  *background:0;
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#3c5f7e',endColorstr='#4e7bac',GradientType=0);
+  background:-moz-linear-gradient(top,#3c5f7e 0,#4e7bac 100%);
+  background:-webkit-gradient(linear,left top,left bottom,color-stop(0%,#3c5f7e),color-stop(100%,#4e7bac))
+}
+.nButton.nSend b,
+.hover .widestButton b {
+  text-shadow:0 -1px 0 rgba(0,0,0,0.3);
+  padding:0 8px
+}
+.moviePage .nButton b {
+  padding-left:10px;
+  padding-right:10px
+}
+.moviePage .nButton+.nButton {
+  margin-left:10px
+}
+.nButton.cta>span {
+  color:#fff;
+  border-color:#66a700;
+  font-size:14px;
+  background-color:#66cb00;
+  background-image:-webkit-gradient(linear,left top,left bottom,from(#66cb00),to(#68a803));
+  background-image:-webkit-linear-gradient(top,#66cb00,#68a803);
+  background-image:-moz-linear-gradient(top,#66cb00,#68a803);
+  background-image:-o-linear-gradient(top,#66cb00,#68a803);
+  background-image:-ms-linear-gradient(top,#66cb00,#68a803);
+  background-image:linear-gradient(top,#66cb00,#68a803);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorStr='#66cb00',EndColorStr='#68a803');
+  -webkit-box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.3);
+  -moz-box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.3);
+  box-shadow:inset 0 1px 0 0 rgba(255,255,255,0.3)
+}
+.nButton.cta b {
+  text-shadow:0 1px #060
+}
+.nButton.cta:hover>span {
+  background-color:#b2e57f;
+  background-image:-webkit-gradient(linear,left top,left bottom,from(#b2e57f),to(#690));
+  background-image:-webkit-linear-gradient(top,#b2e57f,#690);
+  background-image:-moz-linear-gradient(top,#b2e57f,#690);
+  background-image:-o-linear-gradient(top,#b2e57f,#690);
+  background-image:-ms-linear-gradient(top,#b2e57f,#690);
+  background-image:linear-gradient(top,#b2e57f,#690);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorStr='#b2e57f',EndColorStr='#669900')
+}
+.nButton.cta:active>span {
+  background-color:#66a700;
+  background-image:-webkit-gradient(linear,left top,left bottom,from(#66a700),to(#7cbb00));
+  background-image:-webkit-linear-gradient(top,#66a700,#7cbb00);
+  background-image:-moz-linear-gradient(top,#66a700,#7cbb00);
+  background-image:-o-linear-gradient(top,#66a700,#7cbb00);
+  background-image:-ms-linear-gradient(top,#66a700,#7cbb00);
+  background-image:linear-gradient(top,#66a700,#7cbb00);
+  filter:progid:DXImageTransform.Microsoft.gradient(startColorStr='#66A700',EndColorStr='#7CBB00');
+  -webkit-box-shadow:none;
+  -moz-box-shadow:none;
+  box-shadow:none
+}
+.nFeatured.like span span {
+  background:#6e97c2;
+  border-color:#5a7ca5;
+  width:13px
+}
+.nFeatured.like:hover span span,
+.nFeatured.like:active span span {
+  background:#6e97c2
+}
+.nFeatured.like .counter {
+  color:#2f5c8d;
+  font-size:9px;
+  line-height:14px;
+  padding-left:20px
+}
+.nButton.inactive>span {
+  background:0;
+  opacity:.6
+}
+.nFeatured.like span {
+  min-width:13px
+}
+.nButton.lButton>span {
+  height:22px;
+  line-height:20px
+}
+.nButton.lButton b {
+  *height:22px;
+  *line-height:22px
+}
+.nFeatured.lButton span span {
+  width:25px
+}
+.nFeatured.lButton span+b {
+  padding-left:33px
+}
+.nButton.xlButton>span {
+  height:28px;
+  line-height:26px
+}
+.nButton.xlButton b {
+  *height:28px;
+  *line-height:29px;
+  font-size:12px
+}
+.nFeatured.xlButton span span {
+  width:30px
+}
+.nFeatured.xlButton span b {
+  *height:33px;
+  *line-height:34px;
+  padding:0 12px 0 42px
+}
+.nButton.gigaButton>span {
+  font-size:14px;
+  line-height:29px;
+  height:32px
+}
+.nButton.gigaButton b {
+  *height:32px;
+  *line-height:32px
+}
+.nSend.gigaButton>span {
+  min-width:120px
+}
+.nSend.gigaButton b {
+  padding:0 12px
+}
+.nButton.widestButton {
+  display:block;
+  width:100%
+}
+.nButton.widestButton>span {
+  display:block
+}
+.nButton.shortestButton>span,
+.nButton.shortestButton.disabled:hover>span {
+  min-width:0
+}
+.playNow {
+  display:block;
+  height:48px;
+  padding-left:54px;
+  margin-right:20px;
+  position:absolute;
+  bottom:6px;
+  left:0;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/games.ge_2Pawcbe.png) no-repeat left top;
+  color:#333;
+  font-size:13px;
+  font-weight:bold;
+  line-height:45px;
+  white-space:nowrap
+}
+.playNow span {
+  display:inline-block;
+  height:48px;
+  width:20px;
+  position:absolute;
+  top:0;
+  right:-20px;
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/games.ge_2Pawcbe.png) no-repeat right top
+}
+.carousel .nButton span {
+  transition:box-shadow .2s ease-out;
+  -webkit-transition:box-shadow .2s ease-out;
+  -moz-transition:box-shadow .2s ease-out
+}
+.carousel .hover .nButton span {
+  box-shadow:0 0 12px 2px #5390dc;
+  background:#fff;
+  border:1px solid #EEE
+}
+.tuInvBenefitsChart {
+  width:auto;
+  overflow:hidden
+}
+.infoButtons {
+  width:auto;
+  overflow:hidden;
+  margin:12px 0 0 0
+}
+.infoButtons a {
+  float:right;
+  display:inline;
+  margin:0 0 0 20px
+}
+.sCalls.nobase {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -285px -206px transparent
+}
+.sSms.nobase {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -338px -208px transparent
+}
+.sInternet.nobase {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -393px -208px transparent
+}
+.xsSms.nobase {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png) no-repeat -161px -213px;
+  width:16px;
+  height:16px;
+  margin-right:4px
+}
+.xsCalls.nobase {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png) no-repeat -190px -209px;
+  width:16px;
+  height:16px;
+  margin-right:4px
+}
+.xsInternet.nobase {
+  background:url(/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png) no-repeat -131px -212px;
+  width:16px;
+  height:16px;
+  margin-right:4px
+}
+.sTopup10.nobase {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -447px -208px transparent
+}
+.sTopup5.nobase {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -498px -208px transparent
+}
+.sContract {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -287px -259px transparent
+}
+.sSim {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -343px -256px transparent
+}
+.sRecharge {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -394px -256px transparent
+}
+.sDataPlan {
+  background:url("/web/20120111191432im_/http://estaticosak1.tuenti.com/layout/web2-Zero/images/layout/tu_sprite.LGbx5-5zJ3.png") no-repeat scroll -450px -256px transparent
+}
+.nPager .nButton>span {
+  height:16px;
+  line-height:14px;
+  min-width:15px
+}
+.nPager .nButton i {
+  margin:0
+}
+.nPager .nButton b {
+  *height:16px;
+  *line-height:14px;
+  line-height:16px
+}
+.nPager .nButton.wider>span {
+  width:28px
+}
+.unitedButtons .nButton {
+  margin:0 0 0 -1px
+}
+.unitedButtons .nButton>span {
+  -moz-border-radius:0;
+  -webkit-border-radius:0;
+  border-radius:0
+}
+.unitedButtons .nButton:first-child {
+  margin:0 0 0 3px
+}
+.unitedButtons .nButton:first-child>span {
+  -moz-border-radius:3px 0 0 3px;
+  -webkit-border-radius:3px 0 0 3px;
+  border-radius:3px 0 0 3px
+}
+.unitedButtons .nButton:last-child>span {
+  -moz-border-radius:0 3px 3px 0;
+  -webkit-border-radius:0 3px 3px 0;
+  border-radius:0 3px 3px 0
+}
+.trace.nButtons.css {
+  cursor:pointer
+}
+.trace.css_login_page.css {
+  cursor:pointer
+}
+/*
+     FILE ARCHIVED ON 19:14:32 Jan 11, 2012 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 06:41:30 Jul 06, 2025.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+*/
+/*
+playback timings (ms):
+  captures_list: 0.871
+  exclusion.robots: 0.037
+  exclusion.robots.policy: 0.014
+  esindex: 0.016
+  cdx.remote: 6.335
+  LoadShardBlock: 3581.4 (3)
+  PetaboxLoader3.datanode: 174.56 (4)
+  PetaboxLoader3.resolve: 287.904 (2)
+  load_resource: 281.196
+*/

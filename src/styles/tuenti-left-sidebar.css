@@ -1,0 +1,418 @@
+/* Tuenti Left Sidebar Styles */
+
+.tuenti-left-sidebar {
+  height: 100vh;
+  position: relative;
+  background-color: #f5f5f5;
+  box-shadow: 0 -20px 0 0 #f5f5f5; /* Extiende el fondo gris hacia arriba */
+  /* Valores por defecto del hueco que rodea el perfil */
+  --gap-start: 120px;
+  --gap-end: 300px;
+  --connector-width: 12px;
+}
+
+.tuenti-left-sidebar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: -20px;
+  width: 1px;
+  height: calc(100% + 20px);
+  background-color: #d0d0d0;
+  z-index: 10;
+}
+
+.tuenti-left-sidebar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: var(--gap-end);
+  width: 1px;
+  height: calc(100% - var(--gap-end));
+  background-color: #d0d0d0;
+  z-index: 1;
+}
+
+/* Línea de conexión horizontal al header */
+.tuenti-header-connector {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background-color: #d0d0d0;
+  z-index: 2;
+}
+
+/* Línea vertical que conecta el menú con el perfil */
+.tuenti-header-connector::before {
+  content: '';
+  position: absolute;
+  top: -20px;
+  right: 0;
+  width: 1px;
+  height: 21px; /* +1px para asegurar la conexión */
+  background-color: #d0d0d0;
+  z-index: 2;
+}
+
+/* Profile Section */
+.tuenti-profile-section {
+  position: relative;
+  z-index: 5;
+  background-color: #f5f5f5 !important; /* Forzar fondo gris */
+}
+
+.tuenti-profile-card {
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-right: none; /* parte superior abierta hacia el maincontent */
+  margin-left: 1rem;
+  padding: 12px;
+  padding-right: 24px;
+  position: relative;
+}
+
+/* Conectores horizontales entre el borde del card y la línea externa */
+.tuenti-profile-card::before,
+.tuenti-profile-card::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  width: 0;
+  height: 0;
+  background-color: transparent;
+  z-index: 2;
+}
+
+.tuenti-profile-card::before { top: -1px; }
+.tuenti-profile-card::after { bottom: -1px; }
+
+/* Bloque inferior (Invitaciones, calendario, etc.) en zona gris */
+.tuenti-lower-wrapper {
+  background: transparent;
+  border: none;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  padding: 12px 0;
+}
+
+.tuenti-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.tuenti-profile-avatar {
+  width: 48px;
+  height: 48px;
+  background-color: #e5e5e5;
+  border: 2px solid #d0d0d0;
+  overflow: hidden;
+  position: relative;
+}
+
+.tuenti-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tuenti-profile-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background-color: #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 24px;
+}
+
+.tuenti-profile-info {
+  flex: 1;
+}
+
+.tuenti-profile-name {
+  font-weight: bold;
+  font-size: 16px;
+  color: #3571b4;
+  margin-bottom: 2px;
+}
+
+.tuenti-profile-stats {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.tuenti-profile-stats-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tuenti-profile-stats-icon img {
+  width: 14px;
+  height: 14px;
+}
+
+.tuenti-profile-stats-number {
+  font-weight: bold;
+  color: #333;
+}
+
+.tuenti-profile-divider {
+  border-top: 1px solid #d0d0d0;
+  margin: 12px 0;
+  width: 100%;
+}
+
+/* Notifications List */
+.tuenti-notifications {
+  list-style: none;
+  padding: 0 12px;
+  margin: 0 0 8px 0;
+  font-size: 13px;
+}
+
+.tuenti-notifications li {
+  color: #79AC45;
+  font-size: 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  margin-bottom: 4px;
+  padding: 2px 0;
+  line-height: 1.2; /* alineación más recta visualmente */
+}
+
+
+
+.tuenti-notifications li:last-child {
+  margin-bottom: 0;
+}
+
+.tuenti-notification-icon {
+  margin-right: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+}
+
+.tuenti-notification-icon img {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  /* Aplicar un filtro que simule el color medio del degradado */
+  filter: brightness(0) saturate(100%) invert(47%) sepia(18%) saturate(1200%) hue-rotate(68deg) brightness(95%) contrast(88%);
+}
+
+/* Main Content */
+.tuenti-sidebar-content {
+  padding: 16px;
+}
+
+.tuenti-sidebar-section {
+  margin-bottom: 16px;
+}
+
+.tuenti-sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.tuenti-sidebar-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tuenti-section-icon {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) saturate(100%) invert(35%) sepia(100%) saturate(1000%) hue-rotate(200deg) brightness(95%) contrast(90%);
+}
+
+.tuenti-location-icon {
+  width: 12px;
+  height: 12px;
+  margin-right: 4px;
+  filter: brightness(0) saturate(100%) invert(40%) sepia(10%) saturate(500%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+.tuenti-sidebar-divider {
+  border-top: none;
+  margin: 16px 0;
+}
+
+/* Invite Friends Section */
+.tuenti-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tuenti-title-row .tuenti-sidebar-title {
+  margin-bottom: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.tuenti-invitations-count {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.tuenti-invite-form {
+  margin-bottom: 4px;
+}
+
+.tuenti-invite-row {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.tuenti-invite-input {
+  flex: 1;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  padding: 4px 6px;
+  background: white;
+  border-radius: 2px;
+  margin: 0;
+}
+
+.tuenti-invite-input:focus {
+  outline: none;
+  border-color: #3571b4;
+  box-shadow: 0 0 0 1px #3571b4;
+}
+
+.tuenti-invite-button {
+  background: #6ba3d0;
+  color: white;
+  font-size: 14px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-weight: normal;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
+.tuenti-invite-button:hover {
+  background: #5a92bf;
+}
+
+.tuenti-settings-link {
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+}
+
+.tuenti-settings-link a {
+  color: #3571b4;
+  text-decoration: none;
+  font-weight: normal;
+  line-height: 1;
+}
+
+.tuenti-settings-link a:hover {
+  text-decoration: underline;
+}
+
+/* Sponsored Events */
+.tuenti-event-description {
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+
+/* Calendar Section */
+.tuenti-calendar-events {
+  font-size: 12px;
+}
+
+.tuenti-calendar-event {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tuenti-calendar-event:last-child {
+  margin-bottom: 0;
+}
+
+.tuenti-calendar-date {
+  font-weight: 600;
+  color: #333;
+}
+
+.tuenti-calendar-description {
+  color: #666;
+  margin-left: 4px;
+}
+
+/* Loading States */
+.tuenti-loading-skeleton {
+  background: #e5e5e5;
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.tuenti-loading-name {
+  height: 16px;
+  width: 120px;
+}
+
+.tuenti-loading-stats {
+  height: 12px;
+  width: 30px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tuenti-left-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) {
+  .tuenti-profile-card {
+    margin-left: 0.5rem;
+    padding: 8px;
+    padding-right: 16px;
+  }
+  
+  .tuenti-sidebar-content {
+    padding: 12px;
+  }
+}

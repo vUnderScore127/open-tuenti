@@ -1,0 +1,261 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, useHistory } from 'react-router-dom';
+import Header from '../components/Header';
+import { getExtendedUserProfile, getUserFriends, type ExtendedUserProfile, type UserProfile } from '../lib/supabase';
+import { useAuth } from '../lib/auth';
+
+interface Post {
+  id: string;
+  content: string;
+  author: {
+    name: string;
+    avatar: string;
+  };
+  timestamp: string;
+  comments?: Comment[];
+}
+
+interface Comment {
+  id: string;
+  content: string;
+  author: {
+    name: string;
+    avatar: string;
+  };
+  timestamp: string;
+}
+
+const Profile: React.FC = () => {
+  const { userId } = useParams<{ userId: string }>();
+  const history = useHistory();
+  const { user: authUser } = useAuth();
+  const [profile, setProfile] = useState<ExtendedUserProfile | null>(null);
+  const [friends, setFriends] = useState<UserProfile[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [newPost, setNewPost] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const targetUserId = userId || authUser?.id;
+        
+        if (targetUserId) {
+          const profileData = await getExtendedUserProfile(targetUserId);
+          setProfile(profileData);
+          
+          const friendsData = await getUserFriends(targetUserId);
+          setFriends(friendsData);
+          
+          setPosts([]);
+        } else {
+          console.error('No se pudo determinar el ID del usuario');
+        }
+      } catch (error) {
+        console.error('Error cargando el perfil:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [userId, authUser?.id]);
+
+  const handlePostSubmit = () => {
+    if (newPost.trim()) {
+      setNewPost('');
+    }
+  };
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen bg-[#f0f2f5]">Cargando...</div>;
+  }
+
+  if (!profile) {
+    return <div className="flex justify-center items-center h-screen bg-[#f0f2f5]">Usuario no encontrado</div>;
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f0f2f5]">
+      <Header />
+      
+      <div className="max-w-[1000px] mx-auto px-4 py-4">
+        <div className="flex gap-4">
+          {/* Left Sidebar - Profile Photo and Info */}
+          <div className="w-[280px] flex-shrink-0 space-y-4">
+            {/* Profile Photo */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <img 
+                src={profile.avatar_url || '/default_tuenties.webp'} 
+                alt={`${profile.first_name} ${profile.last_name}`}
+                className="w-full h-[200px] object-cover"
+              />
+            </div>
+
+            {/* Mis sitios */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <div className="px-3 py-2 border-b border-[#d3d6db]">
+                <h3 className="font-bold text-[#3b5998] text-sm flex items-center gap-2">
+                  <span className="text-blue-500">📍</span>
+                  Mis sitios
+                  <span className="text-blue-500 cursor-pointer hover:underline ml-auto">Crear un sitio</span>
+                </h3>
+              </div>
+              <div className="p-3 text-xs text-gray-600">
+                <p>Aún no sigues ningún sitio.</p>
+                <p className="text-[#3b5998] cursor-pointer hover:underline">Mostrar sitios recomendados</p>
+              </div>
+            </div>
+
+            {/* Mis páginas */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <div className="px-3 py-2 border-b border-[#d3d6db]">
+                <h3 className="font-bold text-[#3b5998] text-sm flex items-center gap-2">
+                  <span className="text-blue-500">👥</span>
+                  Mis páginas
+                  <span className="text-blue-500 cursor-pointer hover:underline ml-auto">Crear página</span>
+                </h3>
+              </div>
+              <div className="p-3 text-xs text-gray-600">
+                <p>No eres seguidor de ninguna página</p>
+                <p className="text-[#3b5998] cursor-pointer hover:underline">Ver disponibles</p>
+              </div>
+            </div>
+
+            {/* Redes */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <div className="px-3 py-2 border-b border-[#d3d6db]">
+                <h3 className="font-bold text-[#3b5998] text-sm">Redes</h3>
+              </div>
+              <div className="p-3 text-xs text-gray-600">
+                <p>Puedes rellenar tus redes haciendo clic <span className="text-[#3b5998] cursor-pointer hover:underline">aquí</span></p>
+              </div>
+            </div>
+
+            {/* Información */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <div className="px-3 py-2 border-b border-[#d3d6db]">
+                <h3 className="font-bold text-[#3b5998] text-sm">Información</h3>
+              </div>
+              
+              {/* Personal */}
+              <div className="border-b border-[#d3d6db]">
+                <div className="px-3 py-2 bg-[#f7f7f7] border-b border-[#d3d6db]">
+                  <h4 className="font-bold text-black text-sm">Personal</h4>
+                </div>
+                <div className="px-3 py-2 text-xs">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-gray-600">Sexo:</span>
+                    <span className="text-black">Chica</span>
+                  </div>
+                  <div className="flex justify-between mb-1">
+                    <span className="text-gray-600">Fecha de nacimiento:</span>
+                    <span className="text-black">16 Oct, 1981</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Edad:</span>
+                    <span className="text-black">31 años</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="flex-1">
+            {/* Top Navigation */}
+            <div className="bg-white border border-[#d3d6db] rounded mb-4">
+              <div className="p-3 flex items-center gap-4 text-sm">
+                <span className="text-[#3b5998] cursor-pointer hover:underline">Mis álbumes de fotos (4)</span>
+                <span className="text-[#3b5998] cursor-pointer hover:underline">Mis canales ▼</span>
+                <span className="text-[#3b5998] cursor-pointer hover:underline ml-auto">Editar mi perfil</span>
+              </div>
+            </div>
+
+            {/* Status Update */}
+            <div className="bg-white border border-[#d3d6db] rounded mb-4">
+              <div className="p-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-gray-400">📷</span>
+                  <span className="text-gray-400">📝</span>
+                </div>
+                <input 
+                  type="text"
+                  placeholder="¿Qué estás haciendo?"
+                  className="w-full p-2 border border-[#d3d6db] text-sm focus:outline-none focus:border-[#3b5998]"
+                />
+              </div>
+            </div>
+
+            {/* Mi espacio personal */}
+            <div className="bg-white border border-[#d3d6db] rounded mb-4">
+              <div className="p-3">
+                <h3 className="font-bold text-black text-sm mb-3">Mi espacio personal</h3>
+                <p className="text-gray-600 text-sm">
+                  Tu espacio personal está vacío. <span className="text-[#3b5998] cursor-pointer hover:underline">Crea tu primera entrada.</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Mi tablón */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <div className="p-3 border-b border-[#d3d6db]">
+                <div className="flex items-center gap-4 text-sm">
+                  <h3 className="font-bold text-black">Mi tablón</h3>
+                  <div className="flex gap-4 ml-auto">
+                    <span className="text-[#3b5998] cursor-pointer hover:underline">Mostrar:</span>
+                    <span className="text-[#3b5998] cursor-pointer hover:underline font-bold">Todo</span>
+                    <span className="text-[#3b5998] cursor-pointer hover:underline">Estados</span>
+                    <span className="text-[#3b5998] cursor-pointer hover:underline">Comentarios</span>
+                  </div>
+                </div>
+              </div>
+              <div className="p-3">
+                <p className="text-gray-600 text-sm">Este tablón está vacío.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="w-[240px] flex-shrink-0 space-y-4">
+            {/* Fotos */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <div className="bg-[#6d84b4] text-white px-3 py-2 text-sm font-bold">
+                Fotos
+              </div>
+              <div className="p-3">
+                <div className="text-xs text-gray-600 mb-3">
+                  Aún no has sido etiquetado en ninguna foto.
+                </div>
+              </div>
+            </div>
+
+            {/* Mis amigos */}
+            <div className="bg-white border border-[#d3d6db] rounded">
+              <div className="bg-[#6d84b4] text-white px-3 py-2 text-sm font-bold">
+                Mis amigos
+              </div>
+              <div className="p-3">
+                <div className="flex items-center gap-2 mb-3">
+                  <img src="/default_tuenties.webp" alt="Sandra" className="w-12 h-12 border border-[#d3d6db]" />
+                  <div>
+                    <p className="text-[#3b5998] text-xs font-bold cursor-pointer hover:underline">Sandra</p>
+                    <p className="text-black text-xs">Arteaga</p>
+                    <p className="text-black text-xs">Galán</p>
+                  </div>
+                </div>
+                <div className="text-center">
+                  <span className="text-[#3b5998] text-xs cursor-pointer hover:underline">
+                    Ver todos (1)
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Profile;

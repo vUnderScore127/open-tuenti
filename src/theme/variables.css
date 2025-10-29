@@ -1,0 +1,13 @@
+:root {
+  /* Ionic color variables - minimal defaults */
+  --ion-color-primary: #3a6b97;
+  --ion-color-primary-rgb: 58, 107, 151;
+  --ion-color-secondary: #40739f;
+  --ion-color-tertiary: #66cb00;
+  --ion-color-success: #2dd36f;
+  --ion-color-warning: #ffc409;
+  --ion-color-danger: #eb445a;
+  --ion-color-light: #f4f5f8;
+  --ion-color-medium: #92949c;
+  --ion-color-dark: #222428;
+}

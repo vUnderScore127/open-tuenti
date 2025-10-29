@@ -1,0 +1,259 @@
+/* Estilos específicos para el Header de Tuenti */
+
+.tuenti-header {
+  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5785B6 0%, #3C6EA3 100%);
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tuenti-header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.tuenti-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 48px;
+}
+
+.tuenti-logo {
+  display: flex;
+  align-items: center;
+  margin-right: 4px;
+  margin-left: 32px;
+}
+
+.tuenti-logo img {
+  height: 56px;
+  cursor: pointer;
+}
+
+.tuenti-divider {
+  height: 32px;
+  width: 1px;
+  background-color: #3F6DA2;
+  margin-right: 16px;
+}
+
+.tuenti-nav {
+  display: none;
+  height: 48px;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .tuenti-nav {
+    display: flex;
+  }
+}
+
+.tuenti-nav-item {
+  padding: 0 16px;
+  height: 100%;
+  font-size: 14px;
+  transition: all 0.2s;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #b3d1f0;
+  font-weight: 500;
+}
+
+.tuenti-nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.tuenti-nav-item.active {
+  background: linear-gradient(to bottom, #40739F 0%, #3A6B97 100%);
+  color: white;
+  font-weight: bold;
+}
+
+.tuenti-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tuenti-search-container {
+  display: none;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .tuenti-search-container {
+    display: block;
+  }
+}
+
+.tuenti-search-input {
+  width: 192px;
+  padding: 4px 12px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.tuenti-search-input::placeholder {
+  color: #9ca3af;
+}
+
+.tuenti-search-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px #60a5fa;
+  outline-color: #60a5fa;
+  border-color: #60a5fa;
+}
+
+.tuenti-search-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.tuenti-search-button:hover {
+  color: #6b7280;
+}
+
+.tuenti-upload-button {
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5686B5 0%, #4575A6 100%);
+  border: 2px solid #396A9D;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.tuenti-upload-button:hover {
+  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #4a7299 0%, #3a6590 100%);
+}
+
+.tuenti-divider-small {
+  height: 24px;
+  width: 1px;
+  background-color: #93c5fd;
+  opacity: 0.5;
+}
+
+.tuenti-settings-container {
+  position: relative;
+}
+
+.tuenti-settings-button {
+  padding: 8px;
+  color: #b3d1f0;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.tuenti-settings-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.tuenti-settings-dropdown {
+  position: absolute;
+  right: 0;
+  margin-top: 8px;
+  width: 192px;
+  background: white;
+  border-radius: 6px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 4px 0;
+  z-index: 50;
+}
+
+.tuenti-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #374151;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tuenti-dropdown-item:hover {
+  background-color: #f3f4f6;
+}
+
+.tuenti-dropdown-divider {
+  margin: 4px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* Iconos SVG como pseudo-elementos */
+.tuenti-search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.tuenti-search-icon img {
+  width: 16px;
+  height: 16px;
+}
+
+.tuenti-upload-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.tuenti-upload-icon img {
+  width: 16px;
+  height: 16px;
+  filter: brightness(0) saturate(100%) invert(100%);
+}
+
+.tuenti-settings-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+}
+
+.tuenti-settings-icon img {
+  width: 18px;
+  height: 18px;
+}
+
+.tuenti-dropdown-icon::after {
+  content: "▼";
+  font-size: 12px;
+}

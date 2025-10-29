@@ -1,0 +1,494 @@
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    color: #333;
+    overflow: hidden;
+}
+
+/* Clase principal nSplash */
+.nSplash {
+    background: #54779f;
+    background: radial-gradient(circle at center, #6e90bc 0%, #426990 100%);
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    min-height: 100vh;
+    width: 100vw;
+}
+
+/* Contenedor principal */
+.contLogin {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Cover section */
+.cover {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 614px;
+    z-index: 1;
+    padding: 25px;
+}
+
+.cover .description {
+    float: left;
+    width: 273px;
+    padding-right: 25px;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.cover .mainPoints {
+    float: right;
+    width: 290px;
+    padding-left: 25px;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cover h1 {
+    width: 320px;
+    height: 85px;
+    background: #4a7399;
+    display: block;
+    text-align: center;
+    line-height: 85px;
+    font-size: 44px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    margin: 0 0 35px 0;
+    border-radius: 8px;
+}
+
+.cover h2 {
+    font-size: 16px;
+    font-weight: bold;
+    text-shadow: -1px 1px #4a7399;
+    color: #FFF;
+    margin-bottom: 5px;
+}
+
+.cover h3 {
+    font-size: 15px;
+    font-weight: bold;
+    text-shadow: 0 1px #4a7399;
+    color: #FFF;
+    margin-bottom: 8px;
+}
+
+.cover p {
+    font-size: 12px;
+    color: #b6cddd;
+    line-height: 1.4em;
+}
+
+.cover .mainPoints ul {
+    list-style: none;
+}
+
+.cover .mainPoints li {
+    padding: 0 0 15px 50px;
+    margin: 0 0 15px 0;
+    min-height: 35px;
+    position: relative;
+}
+
+.cover .mainPoints li:before {
+    content: "📷";
+    position: absolute;
+    left: 15px;
+    top: 0;
+    font-size: 24px;
+}
+
+/* Estilos para las secciones Social y Local */
+.cover .mainPoints h3 {
+    font-weight: bold;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+}
+
+.cover .mainPoints h3:before {
+    content: "";
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    margin-right: 12px;
+    background-repeat: no-repeat;
+    background-size: contain;
+    vertical-align: middle;
+}
+
+.cover .mainPoints h3:first-of-type:before {
+  background-image: url('/open-tuenti/person-alt.svg');
+}
+
+.cover .mainPoints h3:last-of-type:before {
+  background-image: url('/open-tuenti/map-pin-2-fill.svg');
+}
+
+.cover .mainPoints p {
+    margin-left: 60px;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+/* Login section */
+.login {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 410px;
+    z-index: 1;
+    padding: 25px;
+}
+
+.login .body {
+    position: relative;
+    z-index: 2;
+    margin: 0 0 5px 0;
+}
+
+.login ul {
+    list-style: none;
+}
+
+.login li {
+    margin: 0 5px 0 0;
+    width: 160px;
+    float: left;
+    position: relative;
+}
+
+.login li.buttons {
+    text-align: right;
+    width: 80px;
+    margin-right: 0;
+}
+
+.login li.indent {
+    float: none;
+    clear: both;
+    width: 100%;
+    display: block;
+    margin-bottom: 15px;
+}
+
+.login .inputLabel {
+    font-size: 13px;
+    line-height: 16px;
+    font-weight: normal;
+    color: #666;
+    cursor: text;
+    position: absolute;
+    left: 8px;
+    top: 10px;
+    transition: all 0.4s ease-out;
+    pointer-events: none;
+}
+
+.login .input {
+    display: block;
+    position: relative;
+}
+
+.login .input input {
+    font-size: 13px;
+    border: solid 1px #43698f;
+    border-top-color: #274b5a;
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 6px 5px -5px rgba(0, 0, 0, 0.5) inset;
+    background: #fff;
+    border-radius: 5px;
+    width: 144px;
+    height: 32px;
+    padding: 7px 6px;
+    margin: 0 0 5px 0;
+    transition: all 0.4s ease-out;
+}
+
+.login .input.focus input {
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 6px 5px -5px rgba(0, 0, 0, 0.5) inset, 0 0 15px -3px rgba(255, 255, 255, 0.6);
+}
+
+/* Fila del formulario con email, contraseña y botón */
+.login li.form-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 15px;
+    width: 100%;
+    float: none;
+    clear: both;
+    margin-bottom: 10px;
+}
+
+.login li.form-row .input {
+    flex: 1;
+    min-width: 140px;
+}
+
+.login li.form-row .submit {
+    margin-bottom: 5px;
+    white-space: nowrap;
+    padding: 8px 16px;
+}
+
+/* Contenedor de contraseña */
+.login .password-container {
+    flex: 1;
+    min-width: 140px;
+}
+
+/* Nuevos estilos para labels encima de los campos */
+.login .input-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 140px;
+}
+
+.login .field-label {
+    color: #fff;
+    font-size: 12px;
+    font-weight: normal;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+    margin-bottom: 3px;
+    cursor: default;
+}
+
+.login .field-input {
+    font-size: 13px;
+    border: solid 1px #43698f;
+    border-top-color: #274b5a;
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 6px 5px -5px rgba(0, 0, 0, 0.5) inset;
+    background: #fff;
+    border-radius: 5px;
+    width: 144px;
+    height: 32px;
+    padding: 7px 6px;
+    margin: 0 0 5px 0;
+    transition: all 0.4s ease-out;
+}
+
+.login .field-input:focus {
+    box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 6px 5px -5px rgba(0, 0, 0, 0.5) inset, 0 0 15px -3px rgba(255, 255, 255, 0.6);
+    outline: none;
+}
+
+/* Estilos para la barra de progreso */
+.progress-container {
+    width: 240px;
+    height: 12px;
+    background-color: #e5e5e5;
+    border: 1px solid #ccc;
+    border-radius: 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4E7BA8;
+    transition: width 0.17s linear;
+    border-radius: 0;
+}
+
+.login li.forgot-password-row {
+    text-align: center;
+    margin-top: 0px;
+    margin-left: -20px;
+}
+
+.login li.forgot-password-row a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.login li.forgot-password-row a:hover {
+    text-decoration: underline;
+}
+
+.login li input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+.login .focus .inputLabel {
+    color: #000;
+    opacity: 0.3;
+}
+
+.login .filled .inputLabel {
+    display: none;
+}
+
+.login label {
+    color: #FFF;
+    vertical-align: middle;
+    font-weight: normal;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.login input.rememberMe {
+    background: 0;
+    width: auto;
+    border: 0;
+    margin-right: 3px;
+    vertical-align: middle;
+    padding: 0;
+}
+
+.login a {
+    color: #b6cddd;
+    text-decoration: none;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+.login a:hover {
+    text-decoration: underline;
+    color: #FFF;
+}
+
+.login .submit {
+    background: linear-gradient(to bottom, rgba(144, 206, 234, 1) 0%, rgba(115, 197, 239, 1) 100%);
+    box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    height: 34px;
+    width: 80px;
+    color: #FFF;
+    text-shadow: 0 -1px #8bc0d9;
+    font-size: 12px;
+    border: 0;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.login .submit.withLabels {
+    margin-top: 18px;
+}
+
+.login .submit:hover {
+    background: linear-gradient(to bottom, rgba(128, 203, 234, 1) 0%, rgba(98, 196, 239, 1) 100%);
+}
+
+.login .submit:active {
+    background: linear-gradient(to bottom, rgba(144, 206, 234, 1) 0%, rgba(115, 197, 239, 1) 100%);
+}
+
+.login .error {
+    color: #6b282c;
+    padding-top: 5px;
+    clear: both;
+}
+
+.login .getAccount {
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    font-weight: normal;
+    color: #fff;
+    text-align: center;
+    margin-top: 10px;
+    position: relative;
+    font-size: 11px;
+    text-shadow: 0 1px #4a7399;
+}
+
+.login .getAccount .border {
+    padding: 8px 4px 0 0;
+    text-align: right;
+    border-top: solid 1px rgba(255, 255, 255, 0.1);
+}
+
+.login .getAccount p {
+    font-size: 11px;
+    color: #fff;
+    display: inline;
+}
+
+.login .getAccount a {
+    margin-left: 4px;
+    padding: 0;
+    vertical-align: middle;
+    color: #fff;
+    background: 0;
+}
+
+/* Footer */
+.tuFooter {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+}
+
+.tuFooter .footerContent {
+    border-bottom: solid 1px rgba(0, 0, 0, 0.1);
+    padding: 15px 25px;
+}
+
+.brand_footer {
+    border-top: solid 1px rgba(255, 255, 255, 0.1);
+    padding: 10px 25px;
+    text-align: center;
+}
+
+.tu_brand {
+    display: inline-block;
+    color: #fff;
+    text-decoration: none;
+}
+
+.tu_brand strong {
+    font-size: 12px;
+    color: #fff;
+    text-shadow: 0 1px #4a7399;
+}
+
+.tu_brand p {
+    font-size: 11px;
+    line-height: 15px;
+    color: #9dbacf;
+    text-shadow: 0 1px #4a7399;
+}
+
+.tu_brand:hover p.link {
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .contLogin {
+        width: 90%;
+        left: 5%;
+        margin-left: 0;
+        height: auto;
+        top: 20px;
+        margin-top: 0;
+    }
+    
+    .cover, .login {
+        float: none;
+        width: 100%;
+        padding: 15px;
+    }
+    
+    .cover .description, .cover .mainPoints {
+        float: none;
+        width: 100%;
+        border: none;
+        padding: 0;
+        margin-bottom: 20px;
+    }
+}
