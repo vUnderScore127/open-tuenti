@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page - Tuenti</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 20px;
+            text-align: center;
+        }
+        .test-box {
+            background-color: white;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-box">
+        <h1>🧪 Página de Prueba - Tuenti</h1>
+        <p>Si puedes ver esto, GitHub Pages está funcionando correctamente.</p>
+        <p><strong>Fecha:</strong> <span id="fecha"></span></p>
+        <p><strong>URL actual:</strong> <span id="url"></span></p>
+    </div>
+
+    <script>
+        document.getElementById('fecha').textContent = new Date().toLocaleString();
+        document.getElementById('url').textContent = window.location.href;
+        console.log('✅ Test page loaded successfully!');
+    </script>
+</body>
+</html>
