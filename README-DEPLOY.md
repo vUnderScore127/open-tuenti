@@ -2,6 +2,8 @@
 
 Esta es la versión compilada y lista para producción de Tuentis.
 
+🌟 **Última actualización:** Deployment automático activado
+
 ## 📦 Contenido
 
 - `dist/` - Aplicación compilada y optimizada
