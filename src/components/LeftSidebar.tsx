@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/auth'
 import { getUserProfile, UserProfile } from '../lib/supabase'
+import { supabase } from '@/lib/supabase'
 import '../styles/tuenti-left-sidebar.css'
 
 export default function LeftSidebar() {
@@ -160,7 +161,7 @@ export default function LeftSidebar() {
                  </li>
                  <li>
                    <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}person-add-sharp.svg`} alt="Invitaciones" />
+                     <img src={`${import.meta.env.BASE_URL}people.svg`} alt="Invitaciones" />
                    </span>
                    2 invitaciones a páginas
                 </li>
@@ -180,14 +181,7 @@ export default function LeftSidebar() {
           </div>
           <div className="tuenti-invitations-count">5 invitaciones</div>
           <div className="tuenti-invite-form">
-            <div className="tuenti-invite-row">
-              <input 
-                type="email" 
-                placeholder="E-mail" 
-                className="tuenti-invite-input"
-              />
-              <button className="tuenti-invite-button">Invitar</button>
-            </div>
+            <InviteForm />
           </div>
         </div>
         
@@ -220,6 +214,58 @@ export default function LeftSidebar() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function InviteForm() {
+  const [email, setEmail] = useState('')
+  const [sending, setSending] = useState(false)
+  const [message, setMessage] = useState<string>('')
+
+  const handleInvite = async () => {
+    setMessage('')
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setMessage('Introduce un email válido')
+      return
+    }
+    setSending(true)
+    try {
+      const token = (crypto as any)?.randomUUID ? (crypto as any).randomUUID() : Math.random().toString(36).slice(2)
+      const { data: { user } } = await supabase.auth.getUser()
+      const invitedBy = user?.id || null
+      const { error } = await supabase
+        .from('invitations')
+        .insert({ email, token, invited_by: invitedBy })
+      if (error) throw error
+      try {
+        await supabase.functions.invoke('send-invite', { body: { email, token } })
+        setMessage('Invitación creada y email enviado.')
+      } catch {
+        setMessage('Invitación creada. El email se enviará desde el backend.')
+      }
+      setEmail('')
+    } catch (e) {
+      setMessage('No se pudo crear la invitación (configura la tabla y función).')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div className="tuenti-invite-row">
+      <input
+        type="email"
+        placeholder="E-mail"
+        className="tuenti-invite-input"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        disabled={sending}
+      />
+      <button className="tuenti-invite-button" onClick={handleInvite} disabled={sending}>
+        {sending ? 'Enviando…' : 'Invitar'}
+      </button>
+      {message && <div style={{ fontSize: 12, color: '#666' }}>{message}</div>}
     </div>
   )
 }

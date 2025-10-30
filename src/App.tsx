@@ -11,6 +11,9 @@ import PrivateMessages from './pages/PrivateMessages';
 import People from './pages/People';
 import Videos from './pages/Videos';
 import Games from './pages/Games';
+import Admin from './pages/Admin';
+import Invite from './pages/Invite';
+import Signup from './pages/Signup';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -37,7 +40,7 @@ const App: React.FC = () => (
   <IonApp>
     <AuthProvider>
       <ChatProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL.slice(0, -1)}>
+        <BrowserRouter basename={import.meta.env.BASE_URL}>
           <IonRouterOutlet>
             <Switch>
               <Route exact path="/login" component={Login} />
@@ -50,9 +53,9 @@ const App: React.FC = () => (
               <Route exact path="/people" component={People} />
               <Route exact path="/videos" component={Videos} />
               <Route exact path="/games" component={Games} />
-              <Route exact path="/invitation">
-                <div>Invitation Page - Coming Soon</div>
-              </Route>
+              <Route exact path="/admin" component={Admin} />
+              <Route exact path="/invite/:token" component={Invite} />
+              <Route exact path="/signup" component={Signup} />
               <Route exact path="/">
                 <Redirect to="/login" />
               </Route>

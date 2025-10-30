@@ -1036,3 +1036,60 @@ export const friendshipService = {
   getSentFriendRequests,
   removeFriend
 }
+
+// Invitaciones: interfaz y funciones auxiliares
+export interface Invitation {
+  id: string
+  email: string
+  token: string
+  status: 'pending' | 'accepted' | 'revoked' | 'expired'
+  invited_by?: string
+  invited_user_id?: string | null
+  created_at: string
+  expires_at: string
+}
+
+export async function createInvitation(email: string, invitedBy?: string): Promise<Invitation | null> {
+  const token = (crypto as any)?.randomUUID ? (crypto as any).randomUUID() : Math.random().toString(36).slice(2)
+  const { data, error } = await supabase
+    .from('invitations')
+    .insert({ email, token, invited_by: invitedBy })
+    .select('*')
+    .single()
+  if (error) {
+    console.error('Error creating invitation:', error)
+    return null
+  }
+  return data as Invitation
+}
+
+export async function verifyInvitationToken(token: string): Promise<Invitation | null> {
+  // Prefer RPC to bypass RLS safely
+  const { data, error } = await supabase.rpc('verify_invitation', { invite_token: token })
+  if (error || !data) return null
+  return data as Invitation
+}
+
+export async function acceptInvitation(token: string): Promise<Invitation | null> {
+  const { data, error } = await supabase.rpc('accept_invitation', { invite_token: token })
+  if (error || !data) return null
+  return data as Invitation
+}
+
+export async function listInvitations(limit = 50): Promise<Invitation[]> {
+  const { data, error } = await supabase
+    .from('invitations')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit)
+  if (error || !data) return []
+  return data as Invitation[]
+}
+
+export async function updateInvitationStatus(id: string, status: Invitation['status']): Promise<boolean> {
+  const { error } = await supabase
+    .from('invitations')
+    .update({ status })
+    .eq('id', id)
+  return !error
+}

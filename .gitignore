@@ -39,6 +39,9 @@ android/
 build/
 www/
 
+# Deployment artifacts folder (local-only)
+tuentis-deploy/
+
 # Temporary files
 *.tmp
 *.temp

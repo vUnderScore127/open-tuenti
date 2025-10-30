@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSearchbar } from '@ionic/react';
 import { logOutOutline, settingsOutline, helpCircleOutline, cloudUploadOutline } from 'ionicons/icons';
 import { useAuth } from '../lib/auth';
+import { supabase } from '@/lib/supabase';
 import { useHistory, useLocation } from 'react-router-dom';
 import '../styles/tuenti-header.css';
 
@@ -12,6 +13,31 @@ const Header: React.FC = () => {
   const location = useLocation();
   const [searchText, setSearchText] = useState('');
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const loadRole = async () => {
+      try {
+        const { data: authUser } = await supabase.auth.getUser();
+        const uid = authUser?.user?.id;
+        if (!uid) {
+          setIsAdmin(false);
+          return;
+        }
+        const { data } = await supabase
+          .from('profiles')
+          .select('role, is_admin')
+          .eq('id', uid)
+          .single();
+        const role = (data as any)?.role;
+        const flag = Boolean((data as any)?.is_admin);
+        setIsAdmin(role === 'admin' || flag);
+      } catch (e) {
+        setIsAdmin(false);
+      }
+    };
+    loadRole();
+  }, []);
 
   const handleLogout = async () => {
     await signOut();
@@ -35,6 +61,7 @@ const Header: React.FC = () => {
     { name: 'Vídeos', path: '/videos' },
     { name: 'Juegos', path: '/games' }
   ];
+  const adminItem = { name: 'Admin', path: '/admin' };
 
   const isActiveMenu = (path: string) => {
     return location.pathname === path;
@@ -59,7 +86,7 @@ const Header: React.FC = () => {
 
             {/* Navigation Menu */}
             <nav className="tuenti-nav">
-              {menuItems.map((item) => (
+              {[...menuItems, ...(isAdmin ? [adminItem] : [])].map((item) => (
                 <button
                   key={item.name}
                   onClick={() => handleNavigation(item.path)}
