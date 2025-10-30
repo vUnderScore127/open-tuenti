@@ -18,7 +18,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -32,7 +31,6 @@ jobs:
       run: npm run build:prod
       env:
         NODE_ENV: production
-
     - name: Setup Pages
       uses: actions/configure-pages@v4
 
