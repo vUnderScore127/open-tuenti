@@ -139,7 +139,9 @@ export default function Signup() {
       const params = new URLSearchParams()
       params.set('email', email)
       if (token) params.set('token', token)
-      history.push(`/confirm-email?${params.toString()}`)
+      // Forzar navegación usando URL absoluta para evitar problemas de router
+      const target = `${import.meta.env.BASE_URL}confirm-email?${params.toString()}`
+      window.location.assign(target)
     } catch (err: any) {
       console.error('Error during signup process:', err)
       const errorMessage = err.message || 'Error desconocido durante el registro'
