@@ -557,7 +557,7 @@ const RightSidebar: React.FC = () => {
               }`}>
                 {isMinimized ? (
                   <img
-                    src={chat.friend.avatar_url || '/placeholder.svg'}
+                src={chat.friend.avatar_url || `${import.meta.env.BASE_URL}placeholder.svg`}
                     alt={chat.friend.first_name}
                     className="chat-avatar-minimized"
                     onClick={() => restoreChat(chat.friend.id)}
@@ -566,7 +566,7 @@ const RightSidebar: React.FC = () => {
                   <>
                     <div className="chat-user-info">
                       <img
-                        src={chat.friend.avatar_url || '/placeholder.svg'}
+                src={chat.friend.avatar_url || `${import.meta.env.BASE_URL}placeholder.svg`}
                         alt={chat.friend.first_name}
                         className="chat-avatar-small"
                       />
@@ -644,7 +644,7 @@ const RightSidebar: React.FC = () => {
                           <div className="message-container">
                             <div className="message-content">
                               <img
-                                src={isCurrentUser ? '/placeholder.svg' : chat.friend.avatar_url || '/placeholder.svg'}
+                src={isCurrentUser ? `${import.meta.env.BASE_URL}placeholder.svg` : chat.friend.avatar_url || `${import.meta.env.BASE_URL}placeholder.svg`}
                                 alt="Avatar"
                                 className="message-avatar"
                               />
@@ -726,4 +726,4 @@ const RightSidebar: React.FC = () => {
 
 export default RightSidebar;
 
-
+

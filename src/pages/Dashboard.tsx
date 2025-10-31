@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
           content,
           created_at,
           user_id,
-          profiles(first_name, last_name, avatar_url)
+          profiles(first_name, last_name, avatar_url, username)
         `)
         .order('created_at', { ascending: false })
         .limit(10);
@@ -69,9 +69,10 @@ const Dashboard: React.FC = () => {
             .single();
           const hasMedia = mediaData?.thumbnail_url;
           const isVideo = mediaData?.file_type?.startsWith('video/');
+          const name = `${(post.profiles as any)?.first_name || ''} ${(post.profiles as any)?.last_name || ''}`.trim()
           return {
             id: post.id,
-            user: `${(post.profiles as any)?.first_name || ''} ${(post.profiles as any)?.last_name || ''}`.trim() || 'Usuario',
+            user: name || (post.profiles as any)?.username || 'Usuario',
             content: post.content,
             image: hasMedia || undefined,
             videoUrl: isVideo ? mediaData?.file_url : undefined,

@@ -32,3 +32,18 @@ end;
 $$;
 
 grant execute on function public.accept_invitation(invite_token text) to authenticated;
+
+-- Helper: check if current user is admin (bypasses RLS to avoid recursion)
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+set search_path = public
+as $$
+  select exists(
+    select 1 from public.admins a
+    where a.user_id = auth.uid()
+  );
+$$;
+
+grant execute on function public.is_admin() to anon, authenticated;

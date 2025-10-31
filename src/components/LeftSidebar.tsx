@@ -37,9 +37,13 @@ export default function LeftSidebar() {
     loadUserProfile()
   }, [authUser?.id])
 
-  const displayName = userProfile 
-    ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Usuario'
-    : 'Usuario'
+  const displayName = (() => {
+    if (userProfile) {
+      const full = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim()
+      if (full) return full
+    }
+    return authUser?.email || 'Usuario'
+  })()
   
   console.log('🏷️ Display name:', displayName, 'from profile:', userProfile)
   console.log('🔍 Name parts:', {

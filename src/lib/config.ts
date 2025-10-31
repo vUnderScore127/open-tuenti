@@ -18,19 +18,16 @@ export const config = {
 
 // Función para obtener la configuración de Supabase
 export function getSupabaseConfig() {
-  if (config.isDevelopment) {
-    // En desarrollo, usar credenciales directas
-    return {
-      url: config.dev.supabaseUrl,
-      anonKey: config.dev.supabaseAnonKey
-    }
-  } else {
-    // Para GitHub Pages y hosting estático, usar las mismas credenciales
-    // En un entorno de producción real, estas vendrían del servidor
-    console.warn('⚠️ Usando credenciales de desarrollo en producción estática (GitHub Pages)')
-    return {
-      url: config.dev.supabaseUrl,
-      anonKey: config.dev.supabaseAnonKey
-    }
+  const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL
+  const envAnon = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY
+
+  if (envUrl && envAnon) {
+    return { url: envUrl, anonKey: envAnon }
+  }
+
+  // Fallback a credenciales de desarrollo si no hay variables de entorno definidas
+  return {
+    url: config.dev.supabaseUrl,
+    anonKey: config.dev.supabaseAnonKey
   }
 }

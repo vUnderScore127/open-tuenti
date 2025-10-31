@@ -139,6 +139,8 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
+  flex-wrap: nowrap;
   background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5686B5 0%, #4575A6 100%);
   border: 2px solid #396A9D;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
@@ -240,6 +242,14 @@
   filter: brightness(0) saturate(100%) invert(100%);
 }
 
+/* Flip arrow effect for Volver a Tuenti */
+.flip-arrow {
+  transition: transform 0.2s ease;
+}
+.tuenti-upload-button:hover .flip-arrow {
+  transform: scaleX(-1);
+}
+
 .tuenti-settings-icon {
   display: flex;
   align-items: center;
@@ -256,4 +266,23 @@
 .tuenti-dropdown-icon::after {
   content: "▼";
   font-size: 12px;
+}
+
+/* Dark mode overrides (use global .dark class on html) */
+.dark .tuenti-settings-button {
+  color: #cfe0fb;
+}
+.dark .tuenti-settings-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+.dark .tuenti-settings-dropdown {
+  background: #111827;
+  border: 1px solid #374151;
+}
+.dark .tuenti-dropdown-item {
+  color: #e5e7eb;
+}
+.dark .tuenti-dropdown-item:hover {
+  background-color: #1f2937;
 }
