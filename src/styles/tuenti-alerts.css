@@ -1,10 +1,11 @@
 /* Estilos de alertas globales (ligeros y no invasivos) */
 .global-alert-wrapper {
   position: fixed;
-  top: 72px; /* debajo del header */
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000; /* sobre el contenido, bajo modales */
+  top: 56px; /* más pegado al header */
+  right: 16px; /* alineada al lado derecho */
+  left: auto;
+  transform: none;
+  z-index: 2000; /* por encima de overlays del admin */
   pointer-events: none; /* no bloquear clics cuando no hay alerta */
 }
 
@@ -16,19 +17,21 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: 560px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #1f2937;
-  border: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  border-radius: 10px;
-  padding: 12px 16px;
+  max-width: 420px; /* más compacta al alinearse a la derecha */
+  /* Tema rojizo para mayor contraste */
+  background: linear-gradient(to bottom, #fee2e2 0%, #fecaca 100%);
+  color: #7f1d1d;
+  border: 2px solid rgba(239, 68, 68, 0.9);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.16), 0 18px 40px rgba(239,68,68,0.12);
+  border-radius: 12px;
+  padding: 14px 18px;
   animation: alert-pop 220ms ease-out;
 }
 
 .global-alert__text {
-  font-size: 14px;
+  font-size: 15px; /* mayor legibilidad */
   line-height: 1.4;
+  font-weight: 600;
 }
 
 .global-alert__close {
@@ -38,11 +41,11 @@
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  color: #6b7280;
+  color: #ef4444; /* acento de cierre en rojo */
 }
 
 .global-alert__close:hover {
-  color: #111827;
+  color: #b91c1c;
 }
 
 @keyframes alert-pop {

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { IonPage, IonContent } from '@ionic/react'
 import Header from '@/components/Header'
-import Footer from '@/components/Footer'
 import { useParams, useHistory } from 'react-router-dom'
 import { acceptInvitation, verifyInvitationToken } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
@@ -77,7 +76,7 @@ const Invite: React.FC = () => {
           )}
         </div>
       </IonContent>
-      <Footer />
+      {/* Footer eliminado */}
     </IonPage>
   )
 }

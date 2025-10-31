@@ -14,6 +14,7 @@ import People from './pages/People';
 import Videos from './pages/Videos';
 import Games from './pages/Games';
 import Admin from './pages/Admin';
+import Status from './pages/Status';
 import Invite from './pages/Invite';
 import Signup from './pages/Signup';
 import NeedInvite from './pages/NeedInvite';
@@ -60,6 +61,7 @@ const App: React.FC = () => (
               <Route exact path="/videos" component={Videos} />
               <Route exact path="/games" component={Games} />
               <Route exact path="/admin" component={Admin} />
+              <Route exact path="/status/:postId" component={Status} />
               <Route exact path="/invite/:token" component={Invite} />
               <Route exact path="/signup" component={Signup} />
               <Route exact path="/confirm-email" component={ConfirmEmail} />

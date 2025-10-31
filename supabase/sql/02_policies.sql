@@ -59,6 +59,15 @@ create policy profiles_self_insert on public.profiles
   for insert
   with check (id = auth.uid());
 
+-- NUEVA POLÍTICA: permitir a usuarios autenticados ver perfiles de otros usuarios
+-- Nota: esto expone todas las columnas de profiles; para producción se recomienda
+-- usar una vista o función SECURITY DEFINER que limite columnas. Para el prototipo,
+-- esto habilita la página Gente.
+drop policy if exists profiles_authenticated_select_all on public.profiles;
+create policy profiles_authenticated_select_all on public.profiles
+  for select
+  using (auth.uid() is not null);
+
 -- Policies para reports (moderación)
 drop policy if exists reports_admin_select on public.reports;
 create policy reports_admin_select on public.reports
@@ -223,3 +232,19 @@ drop policy if exists blog_posts_admin_delete on public.blog_posts;
 create policy blog_posts_admin_delete on public.blog_posts
   for delete
   using (public.is_admin());
+
+-- Policies para global_alerts
+alter table public.global_alerts enable row level security;
+
+-- Admin: acceso total
+drop policy if exists global_alerts_admin_all on public.global_alerts;
+create policy global_alerts_admin_all on public.global_alerts
+  for all
+  using (public.is_admin())
+  with check (public.is_admin());
+
+-- Usuarios autenticados: lectura (para historial)
+drop policy if exists global_alerts_authenticated_select on public.global_alerts;
+create policy global_alerts_authenticated_select on public.global_alerts
+  for select
+  using (true);

@@ -40,8 +40,12 @@ const RightSidebar: React.FC = () => {
   const [openChats, setOpenChats] = useState<ChatWindow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const settingsWrapperRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [recentConversations, setRecentConversations] = useState<any[]>([]);
+  const [contextMenu, setContextMenu] = useState<{ visible: boolean; x: number; y: number; friendId: string | null }>({ visible: false, x: 0, y: 0, friendId: null });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
   
   // Estado para el selector de emojis
   const [showEmojiPicker, setShowEmojiPicker] = useState<{[key: string]: boolean}>({});
@@ -220,6 +224,13 @@ const RightSidebar: React.FC = () => {
     }));
   };
 
+  // Cargar contadores de no leídos al iniciar sesión o recargar
+  useEffect(() => {
+    if (currentUser?.id) {
+      loadUnreadMessages();
+    }
+  }, [currentUser?.id]);
+
   // Función para manejar selección de emoji
   const onEmojiClick = (emojiData: any, friendId: string) => {
     setOpenChats(prev => prev.map(chat => 
@@ -235,7 +246,7 @@ const RightSidebar: React.FC = () => {
 
   // Suscripción en tiempo real para mensajes
   useEffect(() => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.id || !isOnline) return;
 
     const subscription = supabase
       .channel('chat_messages')
@@ -299,7 +310,7 @@ const RightSidebar: React.FC = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [currentUser?.id, playNotificationSound, minimizedChats, openChats]);
+  }, [currentUser?.id, playNotificationSound, minimizedChats, openChats, isOnline]);
 
   // Suscripción para estado online de amigos
   useEffect(() => {
@@ -385,19 +396,48 @@ const RightSidebar: React.FC = () => {
   };
 
   const handleDisconnect = () => {
-    setOnlineStatus(!isOnline);
+    const nextOnline = !isOnline;
+    setOnlineStatus(nextOnline);
     setShowSettings(false);
+    // Al reconectar, refrescar amigos y contadores inmediatamente
+    if (nextOnline && currentUser?.id) {
+      loadFriends();
+      loadUnreadMessages();
+    }
   };
+
+  // Cerrar el menú de opciones al hacer clic fuera
+  useEffect(() => {
+    if (!showSettings) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsWrapperRef.current && !settingsWrapperRef.current.contains(event.target as Node)) {
+        setShowSettings(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSettings]);
 
   const loadFriends = async () => {
     if (!currentUser) return;
     
     try {
       setLoading(true);
-      const { data: friendships, error } = await supabase
+      const { data: rows, error } = await supabase
         .from('friendships')
         .select(`
-          *,
+          user_id,
+          friend_id,
+          status,
+          user:profiles!user_id(
+            id,
+            first_name,
+            last_name,
+            avatar_url,
+            is_online
+          ),
           friend:profiles!friend_id(
             id,
             first_name,
@@ -406,7 +446,7 @@ const RightSidebar: React.FC = () => {
             is_online
           )
         `)
-        .eq('user_id', currentUser.id)
+        .or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`)
         .eq('status', 'accepted');
 
       if (error) {
@@ -414,9 +454,18 @@ const RightSidebar: React.FC = () => {
         return;
       }
 
-      if (friendships) {
-        setFriends(friendships.map(f => f.friend));
-      }
+      const list: Friend[] = (rows || []).map((r: any) => {
+        const other = r.user_id === currentUser.id ? r.friend : r.user;
+        return {
+          id: other?.id,
+          first_name: other?.first_name || '',
+          last_name: other?.last_name || '',
+          avatar_url: other?.avatar_url || undefined,
+          is_online: !!other?.is_online,
+        } as Friend;
+      }).filter(f => !!f.id);
+
+      setFriends(list);
     } catch (error) {
       console.error('Error in loadFriends:', error);
     } finally {
@@ -425,48 +474,86 @@ const RightSidebar: React.FC = () => {
   };
 
   return (
-    <div className="right-sidebar">
+    <div className={`right-sidebar ${isOnline ? '' : 'offline'}`}>
       {/* Encabezado */}
       <div className="right-sidebar-header">
         <div className="right-sidebar-title">
-          <div className="online-indicator"></div>
+          <div className={`online-indicator ${isOnline ? 'friend-status-online' : 'friend-status-offline'}`}></div>
           <h3 className="chat-title">Chat</h3>
           <span className="friends-count">({friends.length})</span>
         </div>
-        <button
-          className="options-button"
-          onClick={() => setShowSettings(!showSettings)}
-        >
-          Opciones
-        </button>
-        {showSettings && (
-          <div className="settings-dropdown">
-            <div className="settings-dropdown-content">
-              <button
-                onClick={handleSoundToggle}
-                className="settings-option"
-              >
-                {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                {soundEnabled ? 'Silenciar' : 'Activar sonido'}
-              </button>
-              <button
-                onClick={handleDisconnect}
-                className="settings-option"
-              >
-                <LogOut className="h-4 w-4" />
-                {isOnline ? 'Desconectarse' : 'Conectarse'}
-              </button>
+        <div className="options-wrapper" ref={settingsWrapperRef}>
+          <button
+            className="options-button"
+            onClick={() => setShowSettings(!showSettings)}
+          >
+            Opciones
+          </button>
+          {showSettings && (
+            <div className="settings-dropdown">
+              <div className="settings-dropdown-content">
+                <button
+                  onClick={handleSoundToggle}
+                  className="settings-option"
+                >
+                  {soundEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                  {soundEnabled ? 'Silenciar' : 'Activar sonido'}
+                </button>
+                <button
+                  onClick={handleDisconnect}
+                  className="settings-option"
+                >
+                  <LogOut className="h-4 w-4" />
+                  {isOnline ? 'Desconectarse' : 'Conectarse'}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
+      {!isOnline && (
+        <div className="chat-offline">Chat desconectado</div>
+      )}
+
       {/* Buscar amigo */}
-      <div className="search-section">
+      <div className="search-section" onBlur={() => setTimeout(() => { setShowSearchResults(false); }, 150)}>
         <input
           placeholder="Buscar amigo"
           className="search-input"
+          value={searchQuery}
+          onChange={(e) => {
+            const q = e.target.value;
+            setSearchQuery(q);
+            setShowSearchResults(q.trim().length > 0);
+          }}
+          onFocus={() => setShowSearchResults(searchQuery.trim().length > 0)}
         />
+        {showSearchResults && (
+          <div className="search-results">
+            {friends
+              .filter(f => (`${f.first_name} ${f.last_name}`).toLowerCase().includes(searchQuery.toLowerCase()))
+              .slice(0, 8)
+              .map(friend => (
+                <div
+                  key={friend.id}
+                  className="search-result-item"
+                  onMouseDown={() => {
+                    openChat(friend);
+                    setUnreadMessages(prev => ({ ...prev, [friend.id]: 0 }));
+                    setShowSearchResults(false);
+                    setSearchQuery('');
+                  }}
+                >
+                  <span className={`search-result-status ${friend.is_online ? 'online' : 'offline'}`}></span>
+                  <span className="search-result-name">{friend.first_name} {friend.last_name}</span>
+                </div>
+              ))}
+            {friends.filter(f => (`${f.first_name} ${f.last_name}`).toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+              <div className="search-result-empty">Sin resultados</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Lista de amigos */}
@@ -483,6 +570,10 @@ const RightSidebar: React.FC = () => {
                   ...prev,
                   [friend.id]: 0
                 }));
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setContextMenu({ visible: true, x: e.pageX, y: e.pageY, friendId: friend.id });
               }}
               className="friend-item"
             >
@@ -507,6 +598,10 @@ const RightSidebar: React.FC = () => {
                   ...prev,
                   [friend.id]: 0
                 }));
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setContextMenu({ visible: true, x: e.pageX, y: e.pageY, friendId: friend.id });
               }}
               className="friend-item"
             >
@@ -538,7 +633,9 @@ const RightSidebar: React.FC = () => {
           }
 
           function closeChat(id: string) {
-            throw new Error('Function not implemented.');
+            // Cerrar la ventana de chat y limpiar si estaba minimizada
+            setOpenChats(prev => prev.filter(c => c.friend.id !== id));
+            setMinimizedChats(prev => prev.filter(fid => fid !== id));
           }
 
           return (
@@ -641,7 +738,7 @@ const RightSidebar: React.FC = () => {
                           )}
                           
                           {/* Mensaje */}
-                          <div className="message-container">
+                          <div className={`message-container ${isCurrentUser ? 'message-right' : 'message-left'}`}>
                             <div className="message-content">
                               <img
                 src={isCurrentUser ? `${import.meta.env.BASE_URL}placeholder.svg` : chat.friend.avatar_url || `${import.meta.env.BASE_URL}placeholder.svg`}
@@ -720,6 +817,41 @@ const RightSidebar: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Menú contextual para amigos */}
+      {contextMenu.visible && (
+        <div
+          className="context-menu"
+          style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, zIndex: 1000 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="context-menu-item"
+            onClick={async () => {
+              if (contextMenu.friendId && currentUser?.id) {
+                try {
+                  await markMessagesAsRead(currentUser.id, contextMenu.friendId);
+                  setUnreadMessages(prev => ({
+                    ...prev,
+                    [contextMenu.friendId!]: 0
+                  }));
+                } catch (err) {
+                  console.error('Error marcando como leído:', err);
+                }
+              }
+              setContextMenu({ visible: false, x: 0, y: 0, friendId: null });
+            }}
+          >
+            Marcar como leído
+          </button>
+          <button
+            className="context-menu-item"
+            onClick={() => setContextMenu({ visible: false, x: 0, y: 0, friendId: null })}
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
     </div>
   );
 };

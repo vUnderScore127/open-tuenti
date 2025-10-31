@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth';
 import { supabase } from '@/lib/supabase';
 import { useHistory, useLocation } from 'react-router-dom';
 import '../styles/tuenti-header.css';
+import { UploadModal } from './UploadModal';
 
 const Header: React.FC = () => {
   const { signOut, user } = useAuth();
@@ -14,6 +15,7 @@ const Header: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
     const loadRole = async () => {
@@ -71,6 +73,7 @@ const Header: React.FC = () => {
   };
 
   return (
+    <>
     <IonHeader className="ion-no-border">
       <div className="tuenti-header">
         <div className="tuenti-header-container">
@@ -117,7 +120,7 @@ const Header: React.FC = () => {
               </div>
 
               {/* Upload Button */}
-              <button className="tuenti-upload-button">
+              <button className="tuenti-upload-button" onClick={() => setShowUploadModal(true)}>
                 <span>Subir fotos</span>
                 <span className="tuenti-upload-icon">
                   <img src={`${import.meta.env.BASE_URL}arrow-bold-up.svg`} alt="Subir" />
@@ -178,6 +181,18 @@ const Header: React.FC = () => {
         </div>
       </div>
     </IonHeader>
+    {/* Modal de subida de fotos */}
+    <UploadModal
+      isOpen={showUploadModal}
+      onClose={() => setShowUploadModal(false)}
+      onPostCreated={() => {
+        setShowUploadModal(false);
+        try {
+          document.dispatchEvent(new CustomEvent('posts:refresh'));
+        } catch {}
+      }}
+    />
+    </>
   );
 };
 

@@ -215,12 +215,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="tuFooter">
-            <div className="brand_footer">
-              <div className="tu_brand">© Tuenti 2025 · Castellano</div>
-            </div>
-          </div>
+          {/* Footer eliminado */}
         </div>
 
         {/* Toast para mensajes */}

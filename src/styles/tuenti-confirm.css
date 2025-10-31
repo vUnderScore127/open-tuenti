@@ -1,7 +1,9 @@
 /* Estilos para la página de confirmación de email */
 
 .need-invite-container {
-  min-height: calc(100vh - 0px);
+  /* Contenedor centrado sin afectar la posición del panel */
+  position: relative;
+  min-height: 100vh;
   width: 100%;
   display: flex;
   align-items: center;

@@ -22,6 +22,7 @@ const AdminHeader: React.FC<Props> = ({ activeTab, onSelectTab }) => {
               <img 
                 src={`${import.meta.env.BASE_URL}Logo_tuenti_positivo_color.png`} 
                 alt="Tuenti" 
+                onClick={() => (window.location.href = '/dashboard')}
               />
             </div>
 

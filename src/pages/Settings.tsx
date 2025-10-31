@@ -1,11 +1,11 @@
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import { IonContent, IonPage, IonToast } from '@ionic/react';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 import { useChatContext } from '../contexts/ChatContext';
 import { useAuth } from '../lib/auth';
 import Header from '../components/Header';
 import { ImageCropper } from '../components/ImageCropper';
-import { supabase, createInvitation, updateInvitationStatus, getProfilesByIds } from '../lib/supabase';
+import { supabase, createInvitation, updateInvitationStatus, getProfilesByIds, updateUserProfile } from '../lib/supabase';
 import type { Invitation } from '../lib/supabase';
 
 // Función auxiliar para calcular la edad - MOVER AQUÍ
@@ -83,6 +83,7 @@ const Settings: React.FC = () => {
     looking_for: ''
   });
   const history = useHistory();
+  const location = useLocation();
 
 
   // Cargar perfil del usuario
@@ -120,6 +121,16 @@ const Settings: React.FC = () => {
     
     loadUserProfile();
   }, [user]);
+
+  // Leer sección desde query param
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const section = params.get('section');
+    const validSections = new Set(['info','invitaciones']);
+    if (section && validSections.has(section)) {
+      setActiveSection(section);
+    }
+  }, [location.search]);
 
   // Cargar invitaciones del usuario
   useEffect(() => {
@@ -255,10 +266,13 @@ const handleSaveProfile = async () => {
    
     }
     
-    const { data, error } = await supabase
-      .from('profiles')
-      .update(updateData)
-      .eq('id', user.id); 
+    // Usar función centralizada que normaliza género y calcula edad
+    let error: any = null
+    try {
+      await updateUserProfile(user.id, updateData)
+    } catch (e) {
+      error = e
+    }
           
     if (error) {
       console.error('Error detallado de Supabase:', error);

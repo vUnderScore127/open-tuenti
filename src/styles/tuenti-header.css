@@ -7,7 +7,7 @@
 }
 
 .tuenti-header-container {
-  max-width: 1200px;
+  max-width: 1360px;
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -19,15 +19,21 @@
   height: 48px;
 }
 
+/* Bloque de logo en el header */
 .tuenti-logo {
   display: flex;
   align-items: center;
   margin-right: 4px;
   margin-left: 32px;
+  line-height: 0; /* evitar espacio por baseline */
+  height: 48px;   /* misma altura que el header */
+  overflow: hidden; /* evitar desbordes verticales */
 }
 
 .tuenti-logo img {
-  height: 56px;
+  display: block; /* elimina espacio por baseline en imágenes inline */
+  height: auto;
+  max-height: 40px; /* +4px respecto al tamaño previo */
   cursor: pointer;
 }
 

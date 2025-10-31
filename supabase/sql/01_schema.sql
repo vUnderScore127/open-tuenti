@@ -131,3 +131,18 @@ create table if not exists public.blog_posts (
 );
 
 alter table public.blog_posts enable row level security;
+
+-- Tabla de alertas globales (persistencia opcional)
+create table if not exists public.global_alerts (
+  id uuid primary key default gen_random_uuid(),
+  message text not null,
+  created_by uuid references auth.users(id) on delete set null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz,
+  constraint global_alerts_message_len check (char_length(message) <= 160)
+);
+
+alter table public.global_alerts enable row level security;
+
+-- Habilitar Realtime para perfiles (necesario para propagar is_online al instante)
+alter publication supabase_realtime add table public.profiles;

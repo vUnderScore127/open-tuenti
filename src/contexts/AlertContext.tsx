@@ -47,19 +47,15 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [])
 
   useEffect(() => {
-    // Suscripción a inserciones en la tabla public.global_alerts
+    // Suscripción a eventos broadcast en el canal 'global-alerts'
     const channel = supabase
       .channel('global-alerts')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'global_alerts' },
-        (payload: any) => {
-          const newRow: AlertMessage = payload.new
-          if (newRow?.message) {
-            showAlert(newRow.message)
-          }
+      .on('broadcast', { event: 'global_alert' }, (payload: any) => {
+        const msg = payload?.payload?.message
+        if (typeof msg === 'string' && msg.trim()) {
+          showAlert(msg)
         }
-      )
+      })
       .subscribe()
 
     return () => {

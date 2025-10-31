@@ -88,7 +88,8 @@ export default function ConfirmEmail() {
   }
 
   return (
-    <div className="need-invite-container">
+    <div className="nSplash">
+      <div className="need-invite-container">
       <div className="need-invite-panel">
         <div className="need-invite-logo" aria-label="Tuenti" />
         <h1 className="need-invite-title">
@@ -128,6 +129,7 @@ export default function ConfirmEmail() {
             <Button variant="outline" className="rounded-full need-invite-button-outline" onClick={goBack}>Volver a intentar</Button>
           </div>
         )}
+      </div>
       </div>
     </div>
   )

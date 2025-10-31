@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
+import { getSupabaseConfig } from '@/lib/config';
 
 interface ChatContextType {
   isOnline: boolean;
@@ -29,10 +30,13 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   });
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Inicializar audio con la ruta correcta
+  // Inicializar audio apuntando al archivo en public/audio
   useEffect(() => {
-    audioRef.current = new Audio(`${import.meta.env.BASE_URL}audio/notification_sound.wav`);
+    const base = import.meta.env.BASE_URL || '/';
+    const src = `${base}audio/notification_sound.wav`;
+    audioRef.current = new Audio(src);
     audioRef.current.volume = 1.0;
+    audioRef.current.preload = 'auto';
   }, []);
 
   // Función para inicializar el estado online del usuario
@@ -85,6 +89,54 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [currentUser?.id]);
 
+  // Desconexión fiable usando eventos de visibilidad y pagehide con keepalive
+  useEffect(() => {
+    if (!currentUser?.id) return;
+
+    const { url, anonKey } = getSupabaseConfig();
+
+    const sendOfflineKeepalive = async () => {
+      try {
+        const session = await supabase.auth.getSession();
+        const token = session.data.session?.access_token;
+
+        const endpoint = `${url}/rest/v1/profiles?id=eq.${currentUser.id}`;
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'apikey': anonKey,
+        };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        await fetch(endpoint, {
+          method: 'PATCH',
+          headers,
+          body: JSON.stringify({ is_online: false }),
+          keepalive: true,
+        });
+      } catch (e) {
+        // Silently ignore; browser may terminate the request during navigation
+      }
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        sendOfflineKeepalive();
+      }
+    };
+
+    const onPageHide = () => {
+      sendOfflineKeepalive();
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', onPageHide);
+
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', onPageHide);
+    };
+  }, [currentUser?.id]);
+
   const setOnlineStatus = async (status: boolean) => {
     if (currentUser?.id) {
       try {
@@ -107,13 +159,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const playNotificationSound = () => {
-    // Reproducir sonido siempre que esté habilitado y el usuario esté online
-    if (audioRef.current && isOnline && soundEnabled) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(error => {
-        console.error('Error reproduciendo sonido:', error);
-      });
-    }
+    if (!isOnline || !soundEnabled) return;
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = 0;
+    audioRef.current.play().catch(error => {
+      console.error('Error reproduciendo sonido:', error);
+    });
   };
 
   return (

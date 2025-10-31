@@ -3,7 +3,6 @@ import { IonPage, IonContent } from '@ionic/react';
 import Header from '@/components/Header';
 import LeftSidebar from '@/components/LeftSidebar';
 import RightSidebar from '@/components/RightSidebar';
-import Footer from '@/components/Footer';
 import '../styles/tuenti-dashboard.css';
 
 const Videos: React.FC = () => {
@@ -33,7 +32,7 @@ const Videos: React.FC = () => {
             </div>
           </div>
         </div>
-        <Footer />
+      {/* Footer eliminado */}
       </IonContent>
     </IonPage>
   );

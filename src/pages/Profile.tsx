@@ -5,7 +5,6 @@ import { useHistory, useParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { getUserProfile, UserProfile } from '../lib/supabase';
-import Footer from "@/components/Footer";
 import '../styles/tuenti-dashboard.css';
 
 interface Friend {
@@ -261,7 +260,7 @@ const Profile: React.FC = () => {
 
           </div>
         </div>
-        <Footer />
+        {/* Footer eliminado */}
       </IonContent>
     </IonPage>
   );

@@ -1,15 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useHistory } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { getUserProfile, UserProfile } from '../lib/supabase'
 import { supabase } from '@/lib/supabase'
 import '../styles/tuenti-left-sidebar.css'
 
-export default function LeftSidebar() {
+export default function LeftSidebar({ onOpenNotification }: { onOpenNotification?: (type: 'comments' | 'tags') => void }) {
   const { user: authUser } = useAuth()
+  const history = useHistory()
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const sidebarRef = useRef<HTMLDivElement | null>(null)
   const profileCardRef = useRef<HTMLDivElement | null>(null)
+  const [notifCounts, setNotifCounts] = useState<{ postsWithComments: number; photoTags: number; photoComments: number }>({ postsWithComments: 0, photoTags: 0, photoComments: 0 })
+  const [postsWithCommentsIds, setPostsWithCommentsIds] = useState<string[]>([])
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -75,6 +79,62 @@ export default function LeftSidebar() {
     return () => window.removeEventListener('resize', onResize)
   }, [loading, userProfile])
 
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        if (!authUser?.id) return;
+        // Comentarios en tus estados
+        const { data: postRows } = await supabase
+          .from('posts')
+          .select('id')
+          .eq('user_id', authUser.id);
+        const postIds = (postRows || []).map((p: any) => p.id);
+        let postsWithComments = 0;
+        let photoComments = 0;
+        let photoTags = 0;
+        if (postIds.length > 0) {
+          const { data: commentsRows } = await supabase
+            .from('post_comments')
+            .select('id, post_id')
+            .in('post_id', postIds);
+          const byPost: Record<string, number> = {};
+          (commentsRows || []).forEach((c: any) => {
+            byPost[c.post_id] = (byPost[c.post_id] || 0) + 1;
+          });
+          const idsWithComments = Object.keys(byPost);
+          postsWithComments = idsWithComments.length;
+          setPostsWithCommentsIds(idsWithComments);
+
+          const { data: mediaRows } = await supabase
+            .from('media_uploads')
+            .select('id, post_id')
+            .in('post_id', postIds);
+          const mediaIds = (mediaRows || []).map((m: any) => m.id);
+          if (mediaIds.length > 0) {
+            const { data: tagRows } = await supabase
+              .from('photo_tags')
+              .select('id')
+              .in('media_upload_id', mediaIds);
+            photoTags = (tagRows || []).length;
+
+            const postsWithMedia = new Set((mediaRows || []).map((m: any) => m.post_id));
+            photoComments = Object.keys(byPost).filter(pid => postsWithMedia.has(pid)).length;
+          }
+        }
+
+        setNotifCounts({
+          postsWithComments,
+          photoTags,
+          photoComments,
+        });
+      } catch (e) {
+        console.error('Error loading notifications:', e);
+      }
+    };
+    loadNotifications();
+  }, [authUser?.id]);
+
+
   return (
     <div className="tuenti-left-sidebar" ref={sidebarRef}>
       {/* Línea de conexión horizontal al menú */}
@@ -127,48 +187,45 @@ export default function LeftSidebar() {
           <div className="tuenti-profile-divider"></div>
           
           <ul className="tuenti-notifications">
-            <li>
-                   <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}message.svg`} alt="Mensajes" />
-                   </span>
-                   8 mensajes privados
-                 </li>
-                 <li>
-                   <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentarios" />
-                   </span>
-                   1 estado con comentarios
-                 </li>
-                 <li>
-                   <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentarios" />
-                   </span>
-                   35 comentarios
-                 </li>
-                 <li>
-                   <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}calendar.svg`} alt="Eventos" />
-                   </span>
-                   16 invitaciones a eventos
-                 </li>
-                 <li>
-                   <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}tag.svg`} alt="Etiquetas" />
-                   </span>
-                   13 etiquetas
-                 </li>
-                 <li>
-                   <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Fotos" />
-                   </span>
-                   18 fotos con comentarios
-                 </li>
-                 <li>
-                   <span className="tuenti-notification-icon">
-                     <img src={`${import.meta.env.BASE_URL}people.svg`} alt="Invitaciones" />
-                   </span>
-                   2 invitaciones a páginas
-                </li>
+            {notifCounts.postsWithComments > 0 && (
+              <li>
+                <span className="tuenti-notification-icon">
+                  <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentarios" />
+                </span>
+                <button
+                  onClick={() => {
+                    if (notifCounts.postsWithComments === 1 && postsWithCommentsIds[0]) {
+                      history.push(`/status/${postsWithCommentsIds[0]}`)
+                    } else {
+                      onOpenNotification?.('comments')
+                    }
+                  }}
+                  style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}
+                >
+                  {notifCounts.postsWithComments} estados con comentarios
+                </button>
+              </li>
+            )}
+            {notifCounts.photoTags > 0 && (
+              <li>
+                <span className="tuenti-notification-icon">
+                  <img src={`${import.meta.env.BASE_URL}tag.svg`} alt="Etiquetas" />
+                </span>
+                <button onClick={() => onOpenNotification?.('tags')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                  {notifCounts.photoTags} etiquetas
+                </button>
+              </li>
+            )}
+            {notifCounts.photoComments > 0 && (
+              <li>
+                <span className="tuenti-notification-icon">
+                  <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Fotos" />
+                </span>
+                <button onClick={() => onOpenNotification?.('comments')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                  {notifCounts.photoComments} fotos con comentarios
+                </button>
+              </li>
+            )}
           </ul>
         </div>
       </div>
@@ -180,7 +237,7 @@ export default function LeftSidebar() {
           <div className="tuenti-title-row">
             <h3 className="tuenti-sidebar-title">Invitar a tus amigos</h3>
             <div className="tuenti-settings-link">
-              <a href="/settings">Ajustes</a>
+              <a href={`${import.meta.env.BASE_URL}settings?section=invitaciones`}>Ajustes</a>
             </div>
           </div>
           <div className="tuenti-invitations-count">5 invitaciones</div>

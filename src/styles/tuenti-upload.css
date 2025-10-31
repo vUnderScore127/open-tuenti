@@ -1,0 +1,126 @@
+/* Modal flotante estilo Tuenti (azul actual) */
+.tuenti-upload-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 12px;
+}
+
+.tuenti-upload-modal {
+  width: 820px;
+  max-width: 95vw;
+  background: #ffffff;
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+  overflow: hidden;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.tuenti-upload-header {
+  /* Aplicar el mismo estilo con ruido del header */
+  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5785B6 0%, #3C6EA3 100%);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 14px;
+  border-bottom: 1px solid #355f8e;
+}
+.tuenti-upload-header .sep { margin: 0 6px; opacity: 0.85; }
+.tuenti-upload-close {
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tuenti-upload-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+}
+
+.tuenti-upload-column {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 14px;
+}
+.tuenti-upload-column.left { background: #f8fafc; }
+.tuenti-upload-column.right { background: #ffffff; }
+
+.tuenti-upload-column-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.tuenti-upload-column-title .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #2B6CB0;
+  color: #fff;
+  font-weight: 700;
+}
+.tuenti-upload-column-title .badge.secondary { background: #718096; }
+.tuenti-upload-column-title .title { font-weight: 700; }
+.tuenti-upload-column-title .subtitle { font-size: 12px; color: #6b7280; }
+
+.tuenti-upload-inputs { display: flex; flex-direction: column; gap: 10px; }
+.tuenti-upload-input-row { display: grid; grid-template-columns: auto 120px 1fr; gap: 8px; align-items: center; }
+.tuenti-upload-input-row input[type="file"] { display: none; }
+.tuenti-upload-browse {
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.tuenti-upload-filename { font-size: 12px; color: #374151; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tuenti-upload-note { font-size: 12px; color: #6b7280; margin-top: 8px; }
+
+.tuenti-upload-caption label { display: block; font-size: 12px; color: #374151; margin-top: 10px; margin-bottom: 6px; }
+.tuenti-upload-caption textarea {
+  width: 100%;
+  min-height: 80px;
+  resize: vertical;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.tuenti-upload-actions { margin-top: 12px; }
+.tuenti-upload-submit {
+  background: #2B6CB0;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+.tuenti-upload-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.tuenti-upload-description { font-size: 13px; color: #374151; margin-bottom: 12px; }
+.tuenti-upload-multi { display: flex; align-items: center; gap: 8px; }
+.tuenti-upload-multi input[type="file"] { display: none; }
+.tuenti-upload-multi-button {
+  background: #edf2f7;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}

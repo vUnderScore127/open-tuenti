@@ -433,18 +433,30 @@ export async function sendFriendRequest(fromUserId: string, toUserId: string): P
 
 export async function acceptFriendRequest(userId: string, friendId: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    // Preferir RPC para mayor robustez bajo RLS
+    const rpc = await supabase.rpc('accept_friendship', { p_user_id: userId, p_friend_id: friendId })
+    if (!rpc.error && typeof rpc.data === 'boolean') {
+      return rpc.data
+    }
+
+    // Fallback: actualizar directamente con filtro OR
+    const { data, error } = await supabase
       .from('friendships')
       .update({ status: 'accepted' })
-      .eq('user_id', friendId)
-      .eq('friend_id', userId)
-    
+      .or(`and(user_id.eq.${friendId},friend_id.eq.${userId}),and(user_id.eq.${userId},friend_id.eq.${friendId})`)
+      .eq('status', 'pending')
+      .select('id')
+
     if (error) {
-      console.error('Error accepting friend request:', error)
+      console.error('Error accepting friend request (or condition):', error)
       return false
     }
-    
-    return true
+
+    const ok = !!(data && (!Array.isArray(data) || data.length > 0))
+    if (!ok) {
+      console.warn('No pending friendship found to accept', { userId, friendId })
+    }
+    return ok
   } catch (error) {
     console.error('Error accepting friend request:', error)
     return false
@@ -453,18 +465,29 @@ export async function acceptFriendRequest(userId: string, friendId: string): Pro
 
 export async function rejectFriendRequest(userId: string, friendId: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    // Preferir RPC
+    const rpc = await supabase.rpc('reject_friendship', { p_user_id: userId, p_friend_id: friendId })
+    if (!rpc.error && typeof rpc.data === 'boolean') {
+      return rpc.data
+    }
+
+    const { data, error } = await supabase
       .from('friendships')
       .update({ status: 'rejected' })
-      .eq('user_id', friendId)
-      .eq('friend_id', userId)
-    
+      .or(`and(user_id.eq.${friendId},friend_id.eq.${userId}),and(user_id.eq.${userId},friend_id.eq.${friendId})`)
+      .eq('status', 'pending')
+      .select('id')
+
     if (error) {
-      console.error('Error rejecting friend request:', error)
+      console.error('Error rejecting friend request (or condition):', error)
       return false
     }
-    
-    return true
+
+    const ok = !!(data && (!Array.isArray(data) || data.length > 0))
+    if (!ok) {
+      console.warn('No pending friendship found to reject', { userId, friendId })
+    }
+    return ok
   } catch (error) {
     console.error('Error rejecting friend request:', error)
     return false
@@ -1352,14 +1375,48 @@ export interface GlobalAlert {
 }
 
 export async function publishGlobalAlert(message: string): Promise<GlobalAlert | null> {
-  const { data, error } = await supabase
-    .from('global_alerts')
-    .insert({ message })
-    .select('*')
-    .single()
-  if (error) {
-    console.error('Error publishing global alert:', error)
-    return null
+  let created: GlobalAlert | null = null
+  let broadcastOk = false
+
+  // 1) Emitir broadcast para entrega inmediata SIEMPRE
+  try {
+    broadcastOk = await broadcastGlobalAlert(message)
+  } catch (bErr) {
+    console.warn('Broadcast falló:', bErr)
   }
-  return data as GlobalAlert
+
+  // 2) Intentar persistir mediante RPC (requiere admin)
+  try {
+    const { data, error } = await supabase.rpc('publish_global_alert', {
+      p_message: message,
+      p_ttl_seconds: 5,
+    })
+    if (error) {
+      console.error('Error RPC publish_global_alert:', error)
+    } else {
+      created = data as GlobalAlert
+    }
+  } catch (err) {
+    console.error('Error intentando persistir alerta (RPC):', err)
+  }
+
+  // 3) Devolver la fila creada si existe; si no, al menos confirma broadcast
+  return created || (broadcastOk ? { message } : null)
+}
+
+// Alertas globales vía Realtime Broadcast (sin tabla)
+export async function broadcastGlobalAlert(message: string): Promise<boolean> {
+  try {
+    const channel = supabase.channel('global-alerts')
+    const res = await channel.send({
+      type: 'broadcast',
+      event: 'global_alert',
+      payload: { message }
+    })
+    // send() devuelve 'ok' si se pudo publicar
+    return res === 'ok'
+  } catch (err) {
+    console.error('Error broadcasting global alert:', err)
+    return false
+  }
 }

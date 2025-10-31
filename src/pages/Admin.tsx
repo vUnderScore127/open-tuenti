@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { IonPage, IonContent } from '@ionic/react'
 import AdminHeader, { TabKey } from '@/components/AdminHeader'
-import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth'
 import { supabase, listInvitations, updateInvitationStatus, Invitation, searchProfiles, getExtendedUserProfile, updateUserProfile, getProfilesByIds, ExtendedUserProfile, createInvitation, listSupportTickets, updateSupportTicket, createSupportTicket, listPages, createPage, updatePage, deletePage, listEvents, createEvent, updateEvent, deleteEvent, listBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, generateConversationId, markMessagesAsRead, publishGlobalAlert } from '@/lib/supabase'
 import { uploadPostImage } from '@/lib/storageService'
@@ -1068,7 +1067,7 @@ const Admin: React.FC = () => {
           )}
         </div>
       </IonContent>
-      <Footer />
+            {/* Footer eliminado */}
     </IonPage>
   )
 }
