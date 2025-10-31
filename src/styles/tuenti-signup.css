@@ -80,17 +80,22 @@
 
 
 .signup .submit {
-  background-color: #5785B6; /* mismo azul que Admin */
+  /* Botón más redondeado y azul a juego con el fondo */
+  background: linear-gradient(180deg, #5f86b5 0%, #4a7399 100%);
   border: 1px solid #3a6b97;
-  color: white;
-  border-radius: 4px; /* menos redondo */
-  padding: 8px 16px;
+  color: #fff;
+  border-radius: 9999px; /* pill */
+  padding: 10px 22px;
   font-size: 13px;
+  font-weight: bold;
   cursor: pointer;
-  min-width: 120px;
+  min-width: 140px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(255,255,255,0.15);
 }
 
-.signup .submit:hover { background-color: #4a7299; }
+.signup .submit:hover { 
+  background: linear-gradient(180deg, #6a93c0 0%, #4f7aa2 100%);
+}
 
 .signup .submit:disabled {
   opacity: 0.6;

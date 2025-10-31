@@ -1,0 +1,102 @@
+/* Estilos para la página de confirmación de email */
+
+.need-invite-container {
+  min-height: calc(100vh - 0px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: radial-gradient(circle at center, #6e90bc 0%, #426990 100%);
+}
+
+.need-invite-panel {
+  max-width: 680px;
+  width: 100%;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+  padding: 20px 24px;
+}
+
+.need-invite-logo {
+  width: 200px;
+  height: 50px;
+  background-image: url('/open-tuenti/Logo_tuenti_positivo_color.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  border-radius: 8px;
+  margin: 0 auto 16px auto;
+}
+
+.need-invite-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2a2a2a;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.need-invite-description {
+  font-size: 13px;
+  color: #555;
+  text-align: center;
+  margin: 0 auto 14px auto;
+  max-width: 560px;
+}
+
+.need-invite-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 18px;
+}
+
+.step { display: flex; align-items: center; gap: 10px; }
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4a7399;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.step-text { font-size: 13px; color: #444; }
+
+.need-invite-button-container { margin-top: 6px; }
+.need-invite-button {
+  background: linear-gradient(180deg, #5f86b5 0%, #4a7399 100%);
+  border: 1px solid #3a6b97;
+  color: #fff;
+  padding: 10px 22px;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(255,255,255,0.15);
+}
+.need-invite-button:hover {
+  background: linear-gradient(180deg, #6a93c0 0%, #4f7aa2 100%);
+}
+
+.need-invite-button-outline {
+  /* Copiar exactamente los mismos estilos del botón azul */
+  padding: 10px 22px !important;
+  font-weight: bold !important;
+  
+  /* Solo cambiar el fondo y colores para la versión blanca */
+  background: white !important;
+  border: 1px solid #3a6b97 !important;
+  color: #3a6b97 !important;
+  
+  /* Misma sombra que el botón azul */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2), inset 0 -1px 0 rgba(255,255,255,0.15) !important;
+}
+
+.need-invite-button-outline:hover {
+  background: #f8f9fa !important;
+  border-color: #4a7399 !important;
+  color: #4a7399 !important;
+}

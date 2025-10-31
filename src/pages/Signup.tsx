@@ -32,60 +32,89 @@ export default function Signup() {
   const [token, setToken] = useState<string | null>(null)
 
   useEffect(() => {
+    console.log('[Signup] mount/useEffect location.search =', location.search)
     const params = new URLSearchParams(location.search)
     const t = params.get('token')
+    console.log('[Signup] extracted token =', t)
     setToken(t)
     // Si no hay token, redirigimos a la página de invitaciones
     if (!t) {
+      console.warn('[Signup] no token found, redirecting to /needinvite')
       history.replace('/needinvite')
       return
     }
     if (t) {
+      console.log('[Signup] verifying invitation token...')
       verifyInvitationToken(t)
         .then(inv => {
+          console.log('[Signup] verifyInvitationToken result =', inv)
           if (inv && inv.status === 'pending') {
             const invitedEmail = (inv.email && inv.email !== 'link-only') ? inv.email : ''
             setEmail(invitedEmail)
             setInviteStatus(inv.status as any)
           } else {
+            console.warn('[Signup] invitation invalid, redirecting to /needinvite')
             setInviteStatus('revoked')
             history.replace('/needinvite')
           }
         })
-        .catch(() => { setInviteStatus('revoked'); history.replace('/needinvite') })
+        .catch((err) => { 
+          console.error('[Signup] verifyInvitationToken error =', err)
+          setInviteStatus('revoked'); 
+          history.replace('/needinvite') 
+        })
     }
   }, [location.search])
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('[Signup] handleSignup submit')
     // Validaciones básicas del formulario clásico
     if (!firstName || !lastName || !email || !password || !confirm || !country || !city || !dobDay || !dobMonth || !dobYear || !gender) {
+      console.warn('[Signup] validation failed: missing fields', { firstName, lastName, email, country, city, dobDay, dobMonth, dobYear, gender })
       toast({ title: 'Campos incompletos', description: 'Completa todos los campos del registro.', variant: 'destructive' })
       return
     }
     if (!acceptTerms) {
+      console.warn('[Signup] validation failed: terms not accepted')
       toast({ title: 'Condiciones', description: 'Debes aceptar las condiciones de uso.', variant: 'destructive' })
       return
     }
     if (password !== confirm) {
+      console.warn('[Signup] validation failed: passwords mismatch')
       toast({ title: 'Error', description: 'Las contraseñas no coinciden', variant: 'destructive' })
       return
     }
     setLoading(true)
     try {
-      const emailRedirectTo = token
-        ? `${window.location.origin}${import.meta.env.BASE_URL}invite/${token}`
-        : `${window.location.origin}${import.meta.env.BASE_URL}login`
+      console.log('[Signup] preparing emailRedirectTo with token/email', { token, email })
+      const emailRedirectTo = (() => {
+        // Para desarrollo local, usar localhost
+        if (import.meta.env.DEV) {
+          const url = new URL(`${import.meta.env.BASE_URL}confirm-email`, window.location.origin)
+          if (token) url.searchParams.set('token', token)
+          url.searchParams.set('email', email)
+          return url.toString()
+        }
+        // Para producción, usar GitHub Pages con la ruta correcta
+        const url = new URL('/open-tuenti/confirm-email', 'https://vunderscore127.github.io')
+        if (token) url.searchParams.set('token', token)
+        url.searchParams.set('email', email)
+        return url.toString()
+      })()
+      console.log('[Signup] emailRedirectTo =', emailRedirectTo)
 
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo }
       })
+      console.log('[Signup] signUp response', { data, error })
       if (error) throw error
 
       // Si ya hay sesión (por ejemplo, confirmación desactivada), crear perfil e intentar aceptar invitación
       if (data.session && data.user) {
+        console.log('[Signup] session exists; proceeding to profile creation and invitation acceptance')
         const userId = data.user.id
         
         // Calcular la edad
@@ -101,12 +130,13 @@ export default function Signup() {
         }
 
         // Crear perfil completo con todos los campos del formulario
+        const genderDb = gender === 'male' ? 'boy' : gender === 'female' ? 'girl' : 'prefer_not_to_say'
         const profileData = {
           id: userId,
           email,
           first_name: firstName,
           last_name: lastName,
-          gender,
+          gender: genderDb,
           birth_day: parseInt(dobDay),
           birth_month: parseInt(dobMonth),
           birth_year: parseInt(dobYear),
@@ -122,11 +152,15 @@ export default function Signup() {
           console.error('Error creating profile:', profileError)
           throw new Error('Error al crear el perfil: ' + profileError.message)
         }
+        console.log('[Signup] profile upsert succeeded')
 
         if (token && inviteStatus === 'pending') {
+          console.log('[Signup] accepting invitation with token', token)
           await acceptInvitation(token)
+          console.log('[Signup] invitation accepted')
         }
         toast({ title: 'Registro completado', description: 'Tu cuenta ha sido creada.' })
+        console.log('[Signup] navigating to /dashboard')
         history.push('/dashboard')
         return
       }
@@ -140,10 +174,11 @@ export default function Signup() {
       params.set('email', email)
       if (token) params.set('token', token)
       // Forzar navegación usando URL absoluta para evitar problemas de router
-      const target = `${import.meta.env.BASE_URL}confirm-email?${params.toString()}`
+      const target = `${window.location.origin}${import.meta.env.BASE_URL}confirm-email?${params.toString()}`
+      console.log('[Signup] verification required; redirecting to', target)
       window.location.assign(target)
     } catch (err: any) {
-      console.error('Error during signup process:', err)
+      console.error('[Signup] Error during signup process:', err)
       const errorMessage = err.message || 'Error desconocido durante el registro'
       toast({ 
         title: 'Error al registrarte', 
@@ -151,6 +186,7 @@ export default function Signup() {
         variant: 'destructive' 
       })
     } finally {
+      console.log('[Signup] handleSignup finally: setLoading(false)')
       setLoading(false)
     }
   }
