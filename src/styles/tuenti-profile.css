@@ -74,7 +74,7 @@
 .personal-meta { font-size: 11px; color: #777; }
 
 /* Tablón */
-.profile-board { }
+.profile-board { margin-top: 12px; }
 .board-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .board-avatar { width: 24px; height: 24px; background: #e5e5e5; border-radius: 3px; }
 .board-input { flex: 1; border: 1px solid #ccc; border-radius: 3px; padding: 6px 8px; font-size: 12px; }

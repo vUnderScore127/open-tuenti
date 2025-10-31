@@ -192,7 +192,7 @@ const Profile: React.FC = () => {
 
               {/* Estado tipo burbuja */}
               <div className="profile-status-bubble">
-                <span className="profile-status-text">{userProfile?.status_text || 'Escribe aquí tu estado'}</span>
+                <span className="profile-status-text">{userProfile?.bio || statusText || 'Escribe aquí tu estado'}</span>
                 <span className="profile-status-time">hace 15 horas</span>
               </div>
 
