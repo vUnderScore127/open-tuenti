@@ -1,10 +1,13 @@
 /* Estilos clásicos Tuenti para la página de Registro */
 
 .signup {
-  max-width: 420px;
-  margin: 40px auto;
-  background: transparent;
-  padding: 0 0 10px 0;
+  max-width: 620px;
+  margin: 60px auto;
+  background: #fff;
+  padding: 20px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .signup .title {
@@ -94,7 +97,7 @@
 /* Contenedor general para centrado vertical suave */
 .signup-page {
   min-height: calc(100vh - 56px);
-  background: white;
+  background: transparent;
   display: flex;
   align-items: flex-start;
   justify-content: center;
