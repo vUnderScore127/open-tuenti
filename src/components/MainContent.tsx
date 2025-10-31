@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, getUserProfile } from '../lib/supabase';
 import '../styles/tuenti-main-content.css';
 
 type FeedPost = {
@@ -43,6 +43,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
 
   const submitComment = async (postId: string) => {
     const text = (commentDrafts[postId] || '').trim();
+    console.log('📝 submitComment: start', { postId, textLen: text.length, typeOfPostId: typeof postId });
     if (!text) return;
     const { data: userData, error: userErr } = await supabase.auth.getUser();
     if (userErr || !userData?.user) return;
@@ -51,11 +52,32 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
       .from('post_comments')
       .insert([{ post_id: postId, user_id: userId, content: text }]);
     if (!error) {
+      console.log('✅ submitComment: insert ok');
       // Clear and close box
       setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
       setCommentBoxOpen((prev) => ({ ...prev, [postId]: false }));
       // Abrir comentarios y refrescar lista para mostrar el nuevo comentario
       setCommentsOpen((prev) => ({ ...prev, [postId]: true }));
+      // Añadir optimista con nombre del perfil actual para mostrar de inmediato
+      try {
+        const profile = await getUserProfile(userId);
+        setCommentsByPost((prev) => ({
+          ...prev,
+          [postId]: [
+            {
+              id: crypto.randomUUID(),
+              content: text,
+              created_at: new Date().toISOString(),
+              user_id: userId,
+              profiles: profile ? { first_name: profile.first_name, last_name: profile.last_name } : undefined,
+            },
+            ...(prev[postId] || []),
+          ],
+        }));
+      } catch (optErr) {
+        console.warn('⚠️ submitComment: optimistic add failed', optErr);
+      }
+      console.log('🔄 submitComment: fetching comments after insert');
       const { data, error: fetchErr } = await supabase
         .from('post_comments')
         .select('id, content, created_at, user_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
@@ -63,15 +85,24 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
         .order('created_at', { ascending: false })
         .limit(20);
       if (!fetchErr) {
+        console.log('📥 submitComment: fetched comments count', (data as any)?.length ?? 0);
         setCommentsByPost((prev) => ({ ...prev, [postId]: (data as any) || [] }));
       }
+      if (fetchErr) {
+        console.error('❌ submitComment: fetch comments error', fetchErr);
+      }
+    }
+    if (error) {
+      console.error('❌ submitComment: insert error', error);
     }
   };
 
   const toggleComments = async (postId: string) => {
     const willOpen = !commentsOpen[postId];
+    console.log('🔧 toggleComments:', { postId, willOpen });
     setCommentsOpen((prev) => ({ ...prev, [postId]: willOpen }));
     if (willOpen && !commentsByPost[postId]) {
+      console.log('🔄 toggleComments: fetching comments');
       const { data, error } = await supabase
         .from('post_comments')
         .select('id, content, created_at, user_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
@@ -79,7 +110,11 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
         .order('created_at', { ascending: false })
         .limit(20);
       if (!error) {
+        console.log('📥 toggleComments: fetched comments count', (data as any)?.length ?? 0);
         setCommentsByPost((prev) => ({ ...prev, [postId]: (data as any) || [] }));
+      }
+      if (error) {
+        console.error('❌ toggleComments: fetch error', error);
       }
     }
   };
