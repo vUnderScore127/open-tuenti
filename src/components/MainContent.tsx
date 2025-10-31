@@ -15,7 +15,7 @@ type FeedPost = {
   taggedPhotosCount?: number;
 };
 
-export default function MainContent({ posts, onStatusSave, lastStatusText = '', lastStatusTime = '', onOpenNotification }: { posts: FeedPost[]; onStatusSave?: (text: string) => void | Promise<void>; lastStatusText?: string; lastStatusTime?: string; onOpenNotification?: (type: 'comments' | 'tags', postId?: string) => void }) {
+export default function MainContent({ posts, onStatusSave, lastStatusText = '', lastStatusTime = '' }: { posts: FeedPost[]; onStatusSave?: (text: string) => void | Promise<void>; lastStatusText?: string; lastStatusTime?: string }) {
   const [statusText, setStatusText] = useState('');
   const [saving, setSaving] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -54,18 +54,17 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
       // Clear and close box
       setCommentDrafts((prev) => ({ ...prev, [postId]: '' }));
       setCommentBoxOpen((prev) => ({ ...prev, [postId]: false }));
-      // If comments are open, optimistically add the comment
-      if (commentsOpen[postId]) {
-        setCommentsByPost((prev) => ({
-          ...prev,
-          [postId]: [
-            { id: crypto.randomUUID(), content: text, created_at: new Date().toISOString(), user_id: userId },
-            ...(prev[postId] || []),
-          ],
-        }));
+      // Abrir comentarios y refrescar lista para mostrar el nuevo comentario
+      setCommentsOpen((prev) => ({ ...prev, [postId]: true }));
+      const { data, error: fetchErr } = await supabase
+        .from('post_comments')
+        .select('id, content, created_at, user_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (!fetchErr) {
+        setCommentsByPost((prev) => ({ ...prev, [postId]: (data as any) || [] }));
       }
-      // Abrir modal de comentarios para llevar al usuario a su comentario
-      onOpenNotification?.('comments', postId);
     }
   };
 
@@ -214,31 +213,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                       )}
                     </div>
                   )}
-                  {/* Filas verdes de actividad: ahora debajo de acciones y comentarios */}
-                  {(p.commentsCount || p.taggedPhotosCount) && (
-                    <ul className="tuenti-notifications tuenti-post-activity" style={{ marginTop: 8 }}>
-                      {p.commentsCount ? (
-                        <li>
-                          <span className="tuenti-notification-icon">
-                            <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentarios" />
-                          </span>
-                          <button onClick={() => onOpenNotification?.('comments', p.id)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
-                            {p.commentsCount} comentarios
-                          </button>
-                        </li>
-                      ) : null}
-                      {p.taggedPhotosCount ? (
-                        <li>
-                          <span className="tuenti-notification-icon">
-                            <img src={`${import.meta.env.BASE_URL}tag.svg`} alt="Etiquetas" />
-                          </span>
-                          <button onClick={() => onOpenNotification?.('tags', p.id)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
-                            {p.taggedPhotosCount} fotos etiquetadas
-                          </button>
-                        </li>
-                      ) : null}
-                    </ul>
-                  )}
+                  {/* Notificaciones por post eliminadas para priorizar comentarios inline */}
                 </div>
               </div>
             </div>
