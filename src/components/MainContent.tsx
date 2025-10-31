@@ -21,7 +21,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
   const [isFocused, setIsFocused] = useState(false);
   const [commentBoxOpen, setCommentBoxOpen] = useState<Record<string, boolean>>({});
   const [commentsOpen, setCommentsOpen] = useState<Record<string, boolean>>({});
-  const [commentsByPost, setCommentsByPost] = useState<Record<string, { id: string; content: string; created_at: string; user_id: string; profile?: { first_name?: string; last_name?: string } }[]>>({});
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, { id: string; content: string; created_at: string; user_id: string; profiles?: { first_name?: string; last_name?: string } }[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const maxLength = 320;
   const remainingChars = maxLength - statusText.length;
@@ -75,7 +75,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
     if (willOpen && !commentsByPost[postId]) {
       const { data, error } = await supabase
         .from('post_comments')
-        .select('id, content, created_at, user_id, profiles:first_name, profiles:last_name')
+        .select('id, content, created_at, user_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
         .eq('post_id', postId)
         .order('created_at', { ascending: false })
         .limit(20);
@@ -228,10 +228,10 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                         <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
                           {(commentsByPost[p.id] || []).map((c) => (
                             <li key={c.id} style={{ fontSize: 12, color: '#333', background: '#f7f7f7', border: '1px solid #eee', borderRadius: 3, padding: '6px 8px' }}>
-                              <span style={{ fontWeight: 600 }}>
-                                {c.profile?.first_name || ''} {c.profile?.last_name || ''}
+                          <span style={{ fontWeight: 600 }}>
+                                {c.profiles?.first_name || ''} {c.profiles?.last_name || ''}
                               </span>
-                              {c.profile?.first_name || c.profile?.last_name ? ': ' : ''}
+                              {c.profiles?.first_name || c.profiles?.last_name ? ': ' : ''}
                               {c.content}
                             </li>
                           ))}
