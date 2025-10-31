@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { supabase, verifyInvitationToken, acceptInvitation } from '@/lib/supabase'
 import { useAuth } from '@/lib/auth'
+import '../styles/tuenti-signup.css'
 
 export default function Signup() {
   const location = useLocation()
@@ -90,55 +91,67 @@ export default function Signup() {
   const inviteInvalid = inviteStatus ? inviteStatus !== 'pending' : false
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-6">
-      <div className="w-full max-w-md border border-gray-200 p-6">
-        <h1 className="text-xl font-semibold mb-4">Crear cuenta</h1>
+    <div className="signup-page">
+      <div className="signup">
+        <h1 className="title">Crear cuenta</h1>
 
         {inviteInvalid && (
-          <div className="text-red-600 text-sm mb-4">
+          <div className="notice">
             Esta invitación no es válida o ha expirado.
           </div>
         )}
 
-        <form onSubmit={handleSignup} className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Email</label>
-            <Input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={disabledEmail}
-            />
+        <form onSubmit={handleSignup} className="form">
+          <div className="form-row">
+            <div className="input-group">
+              <label className="field-label">Email</label>
+              {/* Forzamos estilos clásicos sobre el input */}
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="field-input"
+                required
+                disabled={disabledEmail}
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Contraseña</label>
-            <Input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+          <div className="form-row">
+            <div className="input-group">
+              <label className="field-label">Contraseña</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="field-input"
+                required
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Confirmar contraseña</label>
-            <Input
-              type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-            />
+          <div className="form-row">
+            <div className="input-group">
+              <label className="field-label">Confirmar contraseña</label>
+              <Input
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="field-input"
+                required
+              />
+            </div>
           </div>
 
-          <Button type="submit" disabled={loading || inviteInvalid} className="w-full">
-            {loading ? 'Creando cuenta…' : 'Registrarme'}
-          </Button>
+          <div className="form-row" style={{ justifyContent: 'flex-end' }}>
+            <button type="submit" className="submit" disabled={loading || inviteInvalid}>
+              {loading ? 'Creando cuenta…' : 'Registrarme'}
+            </button>
+          </div>
         </form>
 
         {user && (
-          <div className="text-xs text-gray-500 mt-4">
+          <div className="hint">
             Ya has iniciado sesión.
           </div>
         )}
