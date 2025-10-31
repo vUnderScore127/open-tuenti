@@ -44,7 +44,8 @@ export default function Signup() {
       verifyInvitationToken(t)
         .then(inv => {
           if (inv && inv.status === 'pending') {
-            setEmail(inv.email || '')
+            const invitedEmail = (inv.email && inv.email !== 'link-only') ? inv.email : ''
+            setEmail(invitedEmail)
             setInviteStatus(inv.status as any)
           } else {
             setInviteStatus('revoked')
@@ -132,7 +133,9 @@ export default function Signup() {
         )}
 
         <form onSubmit={handleSignup} className="form">
-          <div className="form-row">
+          <h3 className="section-title">Información personal</h3>
+          <div className="divider" />
+          <div className="form-row column">
             <div className="input-group">
               <label className="field-label">Nombre</label>
               <Input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="field-input" required />
@@ -141,44 +144,6 @@ export default function Signup() {
               <label className="field-label">Apellidos</label>
               <Input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="field-input" required />
             </div>
-          </div>
-          <div className="form-row">
-            <div className="input-group narrow">
-              <label className="field-label">Email</label>
-              {/* Forzamos estilos clásicos sobre el input */}
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="field-input"
-                required
-                disabled={disabledEmail}
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="input-group narrow">
-              <label className="field-label">Contraseña</label>
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="field-input"
-                required
-              />
-              <label className="field-label">Confirmar contraseña</label>
-              <Input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className="field-input"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
             <div className="input-group">
               <label className="field-label">País</label>
               <select className="field-input" value={country} onChange={(e) => setCountry(e.target.value)}>
@@ -195,9 +160,6 @@ export default function Signup() {
               <label className="field-label">Ciudad</label>
               <Input type="text" value={city} onChange={(e) => setCity(e.target.value)} className="field-input" />
             </div>
-          </div>
-
-          <div className="form-row">
             <div className="input-group">
               <label className="field-label">Fecha de nacimiento</label>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -215,9 +177,6 @@ export default function Signup() {
                 </select>
               </div>
             </div>
-          </div>
-
-          <div className="form-row">
             <div className="input-group">
               <label className="field-label">Sexo</label>
               <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '6px 0' }}>
@@ -231,7 +190,43 @@ export default function Signup() {
             </div>
           </div>
 
-          <div className="form-row">
+          <h3 className="section-title">Datos de inicio de sesión</h3>
+          <div className="divider" />
+          <div className="form-row column">
+            <div className="input-group narrow">
+              <label className="field-label">Email</label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="field-input"
+                required
+                disabled={disabledEmail}
+              />
+            </div>
+            <div className="input-group narrow">
+              <label className="field-label">Contraseña</label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="field-input"
+                required
+              />
+            </div>
+            <div className="input-group narrow">
+              <label className="field-label">Confirmar contraseña</label>
+              <Input
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                className="field-input"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="form-row column">
             <div className="input-group">
               <label className="field-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input type="checkbox" checked={acceptTerms} onChange={(e) => setAcceptTerms(e.target.checked)} />
@@ -240,8 +235,7 @@ export default function Signup() {
             </div>
           </div>
 
-
-          <div className="form-row" style={{ justifyContent: 'flex-end' }}>
+          <div className="form-row" style={{ justifyContent: 'center' }}>
             <button type="submit" className="submit" disabled={loading || inviteInvalid}>
               {loading ? 'Creando cuenta…' : 'Continuar'}
             </button>
