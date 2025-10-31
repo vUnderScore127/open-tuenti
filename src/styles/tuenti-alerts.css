@@ -1,0 +1,51 @@
+/* Estilos de alertas globales (ligeros y no invasivos) */
+.global-alert-wrapper {
+  position: fixed;
+  top: 72px; /* debajo del header */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000; /* sobre el contenido, bajo modales */
+  pointer-events: none; /* no bloquear clics cuando no hay alerta */
+}
+
+.global-alert-wrapper.show {
+  pointer-events: auto;
+}
+
+.global-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 560px;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1f2937;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  border-radius: 10px;
+  padding: 12px 16px;
+  animation: alert-pop 220ms ease-out;
+}
+
+.global-alert__text {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.global-alert__close {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.global-alert__close:hover {
+  color: #111827;
+}
+
+@keyframes alert-pop {
+  0% { transform: translateX(-50%) translateY(-6px) scale(0.98); opacity: 0; }
+  100% { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+}

@@ -173,6 +173,21 @@ export interface ExtendedUserProfile extends UserProfile {
 
 // Función para actualizar el perfil del usuario
 export async function updateUserProfile(userId: string, profileData: Partial<ExtendedUserProfile>): Promise<void> {
+  // Normalizar género a valores permitidos por el esquema
+  const normalizeGender = (g: any): 'boy' | 'girl' | 'prefer_not_to_say' | 'other' | null => {
+    if (g === undefined || g === null || g === '') return null
+    const key = String(g).toLowerCase()
+    const map: Record<string, 'boy' | 'girl' | 'prefer_not_to_say' | 'other'> = {
+      male: 'boy',
+      boy: 'boy',
+      female: 'girl',
+      girl: 'girl',
+      other: 'other',
+      prefer_not_to_say: 'prefer_not_to_say'
+    }
+    return map[key] ?? null
+  }
+
   // Calcular edad si se proporcionan los datos de nacimiento
   if (profileData.birth_day && profileData.birth_month && profileData.birth_year) {
     profileData.age = calculateAge(
@@ -182,9 +197,15 @@ export async function updateUserProfile(userId: string, profileData: Partial<Ext
     )
   }
 
+  // Aplicar normalización antes de enviar
+  const payload: Partial<ExtendedUserProfile> = { ...profileData }
+  if (payload.gender !== undefined) {
+    payload.gender = normalizeGender(payload.gender) as any
+  }
+
   const { error } = await supabase
     .from('profiles')
-    .update(profileData)
+    .update(payload)
     .eq('id', userId)
   
   if (error) {
@@ -1320,4 +1341,25 @@ export async function updateBlogPost(id: string, changes: Partial<BlogPost>): Pr
 export async function deleteBlogPost(id: string): Promise<boolean> {
   const { error } = await supabase.from('blog_posts').delete().eq('id', id)
   return !error
+}
+
+// Alertas globales: publicación sencilla
+export interface GlobalAlert {
+  id?: string
+  message: string
+  created_at?: string
+  expires_at?: string | null
+}
+
+export async function publishGlobalAlert(message: string): Promise<GlobalAlert | null> {
+  const { data, error } = await supabase
+    .from('global_alerts')
+    .insert({ message })
+    .select('*')
+    .single()
+  if (error) {
+    console.error('Error publishing global alert:', error)
+    return null
+  }
+  return data as GlobalAlert
 }

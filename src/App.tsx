@@ -1,6 +1,8 @@
 import { Route, Switch, Redirect, BrowserRouter } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { AuthProvider } from './lib/auth';
+import { AlertProvider } from './contexts/AlertContext';
+import GlobalAlert from './components/ui/GlobalAlert';
 import Login from './pages/Login';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
@@ -35,16 +37,18 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import './styles/tuenti-alerts.css';
 
 setupIonicReact();
 
 const App: React.FC = () => (
   <IonApp>
     <AuthProvider>
-      <ChatProvider>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <IonRouterOutlet>
-            <Switch>
+      <AlertProvider>
+        <ChatProvider>
+          <BrowserRouter basename={import.meta.env.BASE_URL}>
+            <IonRouterOutlet>
+              <Switch>
               <Route exact path="/login" component={Login} />
               <Route exact path="/reset-password" component={ResetPassword} />
               <Route exact path="/dashboard" component={Dashboard} />
@@ -63,10 +67,13 @@ const App: React.FC = () => (
               <Route exact path="/">
                 <Redirect to="/login" />
               </Route>
-            </Switch>
-          </IonRouterOutlet>
-        </BrowserRouter>
-      </ChatProvider>
+              </Switch>
+            </IonRouterOutlet>
+            {/* Alerta global visible en cualquier página */}
+            <GlobalAlert />
+          </BrowserRouter>
+        </ChatProvider>
+      </AlertProvider>
     </AuthProvider>
   </IonApp>
 );

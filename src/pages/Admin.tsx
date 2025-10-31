@@ -3,7 +3,7 @@ import { IonPage, IonContent } from '@ionic/react'
 import AdminHeader, { TabKey } from '@/components/AdminHeader'
 import Footer from '@/components/Footer'
 import { useAuth } from '@/lib/auth'
-import { supabase, listInvitations, updateInvitationStatus, Invitation, searchProfiles, getExtendedUserProfile, updateUserProfile, getProfilesByIds, ExtendedUserProfile, createInvitation, listSupportTickets, updateSupportTicket, createSupportTicket, listPages, createPage, updatePage, deletePage, listEvents, createEvent, updateEvent, deleteEvent, listBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, generateConversationId, markMessagesAsRead } from '@/lib/supabase'
+import { supabase, listInvitations, updateInvitationStatus, Invitation, searchProfiles, getExtendedUserProfile, updateUserProfile, getProfilesByIds, ExtendedUserProfile, createInvitation, listSupportTickets, updateSupportTicket, createSupportTicket, listPages, createPage, updatePage, deletePage, listEvents, createEvent, updateEvent, deleteEvent, listBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, generateConversationId, markMessagesAsRead, publishGlobalAlert } from '@/lib/supabase'
 import { uploadPostImage } from '@/lib/storageService'
 import '../styles/tuenti-forms.css'
 
@@ -55,6 +55,9 @@ const Admin: React.FC = () => {
     reportsOpen: 0,
   })
   const [localTime, setLocalTime] = useState<Date>(new Date())
+  // Alertas globales
+  const [newGlobalAlert, setNewGlobalAlert] = useState('')
+  const [publishingAlert, setPublishingAlert] = useState(false)
 
   // Moderación: reportes
   const [reportsLoading, setReportsLoading] = useState(false)
@@ -449,6 +452,42 @@ const Admin: React.FC = () => {
                     </div>
                   )}
                   <div style={{ marginTop: 12, fontSize: 12, color: '#666' }}>Hora local: {localTime.toLocaleString()}</div>
+                  {/* Alertas globales */}
+                  <div style={{ marginTop: 20 }}>
+                    <h3 style={{ marginBottom: 8 }}>Alertas globales</h3>
+                    <p style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>Publica un aviso breve para todos los usuarios conectados. La alerta aparece de forma discreta y se cierra sola tras 5 segundos.</p>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <input
+                        className="dashboard-input"
+                        style={{ flex: 1, minWidth: 280 }}
+                        type="text"
+                        placeholder="Mensaje de la alerta (máx. 160 caracteres)"
+                        maxLength={160}
+                        value={newGlobalAlert}
+                        onChange={(e) => setNewGlobalAlert(e.target.value)}
+                      />
+                      <button
+                        className={`dashboard-nav-item ${publishingAlert ? '' : 'active'}`}
+                        disabled={publishingAlert || !newGlobalAlert.trim()}
+                        onClick={async () => {
+                          const msg = newGlobalAlert.trim()
+                          if (!msg) return
+                          setPublishingAlert(true)
+                          try {
+                            const res = await publishGlobalAlert(msg)
+                            if (res) {
+                              setNewGlobalAlert('')
+                            }
+                          } finally {
+                            setPublishingAlert(false)
+                          }
+                        }}
+                      >
+                        {publishingAlert ? 'Publicando…' : 'Publicar alerta'}
+                      </button>
+                    </div>
+                    <div style={{ marginTop: 6, fontSize: 12, color: '#888' }}>Consejo: usa frases cortas; no se necesita título.</div>
+                  </div>
                 </div>
               )}
               {activeTab === 'usuarios' && (
