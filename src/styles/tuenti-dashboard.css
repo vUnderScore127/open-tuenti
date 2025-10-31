@@ -314,25 +314,34 @@
 }
 
 .dashboard-nav-item {
-  padding: 10px 15px;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 8px 14px;
   color: #333;
   text-decoration: none;
-  display: block;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .dashboard-nav-item:hover {
-  background-color: #f8f8f8;
+  background-color: #f3f6fb;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
 
 .dashboard-nav-item.active {
-  background-color: #5785B6;
+  background-image: linear-gradient(to bottom, #5686B5 0%, #4575A6 100%);
   color: white;
+  border-color: #396A9D;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
 }
 
-.dashboard-nav-item:last-child {
-  border-bottom: none;
+/* Botones deshabilitados mantienen el aspecto redondeado pero sin énfasis */
+.dashboard-nav-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* Responsive */
@@ -411,3 +420,39 @@
   background-color: #ccc;
   cursor: not-allowed;
 }
+
+/* Admin Support: action button and dropdown */
+.admin-action-button {
+  font-weight: bold;
+}
+.admin-action-dropdown {
+  position: absolute;
+  right: 0;
+  margin-top: 6px;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+  z-index: 60;
+  padding: 6px 0;
+}
+.admin-action-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 13px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.admin-action-item:hover { background: #f3f4f6; }
+.admin-action-divider { border-top: 1px solid #e5e7eb; margin: 6px 0; }
+
+/* Color variants using Tuenti palette */
+.action-blue { color: #1d4ed8; }
+.action-green { color: #047857; }
+.action-yellow { color: #b45309; }
+.action-orange { color: #c2410c; }
+.action-red { color: #b91c1c; }

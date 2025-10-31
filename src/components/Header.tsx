@@ -8,7 +8,7 @@ import { useHistory, useLocation } from 'react-router-dom';
 import '../styles/tuenti-header.css';
 
 const Header: React.FC = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const history = useHistory();
   const location = useLocation();
   const [searchText, setSearchText] = useState('');
@@ -18,26 +18,29 @@ const Header: React.FC = () => {
   useEffect(() => {
     const loadRole = async () => {
       try {
-        const { data: authUser } = await supabase.auth.getUser();
-        const uid = authUser?.user?.id;
+        // Usa el usuario del contexto para reaccionar a cambios de sesión
+        const uid = user?.id ?? (await supabase.auth.getUser()).data?.user?.id;
         if (!uid) {
           setIsAdmin(false);
           return;
         }
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('profiles')
-          .select('role, is_admin')
+          .select('role')
           .eq('id', uid)
           .single();
+        if (error) {
+          setIsAdmin(false);
+          return;
+        }
         const role = (data as any)?.role;
-        const flag = Boolean((data as any)?.is_admin);
-        setIsAdmin(role === 'admin' || flag);
+        setIsAdmin(role === 'admin');
       } catch (e) {
         setIsAdmin(false);
       }
     };
     loadRole();
-  }, []);
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await signOut();
@@ -86,7 +89,7 @@ const Header: React.FC = () => {
 
             {/* Navigation Menu */}
             <nav className="tuenti-nav">
-              {[...menuItems, ...(isAdmin ? [adminItem] : [])].map((item) => (
+              {menuItems.map((item) => (
                 <button
                   key={item.name}
                   onClick={() => handleNavigation(item.path)}
@@ -157,6 +160,19 @@ const Header: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Admin button moved after settings */}
+              {isAdmin && (
+                <button
+                  className="tuenti-upload-button"
+                  onClick={() => handleNavigation(adminItem.path)}
+                >
+                  <span>Admin</span>
+                  <span className="tuenti-upload-icon">
+                    <img src={`${import.meta.env.BASE_URL}shield-check.svg`} alt="Admin" />
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </div>

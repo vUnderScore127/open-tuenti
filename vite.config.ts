@@ -14,6 +14,7 @@ export default defineConfig({
     drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
   },
   build: {
+    outDir: 'tuentis-deploy',
     minify: 'esbuild',
     rollupOptions: {
       output: {

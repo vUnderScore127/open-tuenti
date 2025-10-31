@@ -11,7 +11,7 @@ export interface UserProfile {
   first_name: string
   last_name: string
   avatar_url: string
-  username: string
+  // username se elimina del esquema; si existiera, no lo usamos
   bio: string | null
   location: string | null
   website: string | null
@@ -165,7 +165,10 @@ export interface ExtendedUserProfile extends UserProfile {
   province?: string
   country?: string
   origin_country?: string
-  looking_for?: 'looking_for_guy' | 'looking_for_girl' | 'looking_for_both' | 'do_not_show' | ''
+  looking_for?: 'looking_for_guy' | 'looking_for_girl' | 'looking_for_both' | 'do_not_show' | '',
+  status?: 'active' | 'suspended' | 'banned' | 'deleted',
+  is_verified?: boolean,
+  role?: 'user' | 'moderator' | 'admin'
 }
 
 // Función para actualizar el perfil del usuario
@@ -218,6 +221,51 @@ export async function getExtendedUserProfile(userId: string): Promise<ExtendedUs
   }
   
   return data
+}
+
+// Búsqueda de perfiles por nombre o email (solo admin verá resultados completos)
+export async function searchProfiles(query: string, limit: number = 20): Promise<ExtendedUserProfile[]> {
+  const q = query.trim()
+  if (!q) return []
+  const isUuid = /^[0-9a-fA-F-]{36}$/.test(q)
+  let req = supabase
+    .from('profiles')
+    .select('*')
+    .limit(limit)
+  if (isUuid) {
+    req = req.eq('id', q)
+  } else {
+    req = req.or([
+      `first_name.ilike.%${q}%`,
+      `last_name.ilike.%${q}%`,
+      `email.ilike.%${q}%`,
+      `phone.ilike.%${q}%`
+    ].join(','))
+  }
+  const { data, error } = await req.order('updated_at', { ascending: false })
+  if (error) {
+    console.error('Error searching profiles:', error)
+    return []
+  }
+  return (data || []) as ExtendedUserProfile[]
+}
+
+// Carga perfiles por ids y devuelve un mapa para mostrar nombres en invitaciones
+export async function getProfilesByIds(ids: string[]): Promise<Record<string, UserProfile>> {
+  const unique = Array.from(new Set(ids.filter(Boolean)))
+  if (unique.length === 0) return {}
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .in('id', unique)
+  if (error) {
+    console.error('Error fetching profiles by ids:', error)
+    return {}
+  }
+  const map: Record<string, UserProfile> = {}
+  const rows: any[] = Array.isArray(data) ? data : []
+  rows.forEach((p: any) => { map[p.id] = p as UserProfile })
+  return map
 }
 
 // Función para generar conversation_id consistente
@@ -1091,5 +1139,185 @@ export async function updateInvitationStatus(id: string, status: Invitation['sta
     .from('invitations')
     .update({ status })
     .eq('id', id)
+  return !error
+}
+
+// Soporte: tickets
+export interface SupportTicket {
+  id: string
+  user_id: string | null
+  title: string
+  description: string | null
+  status: 'open' | 'in_progress' | 'resolved' | 'closed'
+  priority: number
+  assigned_admin_id?: string | null
+  created_at: string
+  updated_at: string
+  resolved_at?: string | null
+}
+
+export async function listSupportTickets(statusFilter?: SupportTicket['status'] | 'all', limit = 100): Promise<SupportTicket[]> {
+  let req = supabase.from('support_tickets').select('*').order('updated_at', { ascending: false }).limit(limit)
+  if (statusFilter && statusFilter !== 'all') {
+    req = req.eq('status', statusFilter)
+  }
+  const { data, error } = await req
+  if (error) {
+    console.error('Error listing support tickets:', error)
+    return []
+  }
+  return (Array.isArray(data) ? data : []) as SupportTicket[]
+}
+
+export async function updateSupportTicket(id: string, changes: Partial<SupportTicket>): Promise<boolean> {
+  const { error } = await supabase
+    .from('support_tickets')
+    .update({ ...changes, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  return !error
+}
+
+export async function createSupportTicket(userId: string, title: string, description?: string, priority: number = 0): Promise<SupportTicket | null> {
+  const { data, error } = await supabase
+    .from('support_tickets')
+    .insert({ user_id: userId, title, description, priority })
+    .select('*')
+    .single()
+  if (error) {
+    console.error('Error creating support ticket:', error)
+    return null
+  }
+  return data as SupportTicket
+}
+
+// Páginas: CRUD básico
+export interface PageItem {
+  id: string
+  owner_id: string | null
+  name: string
+  description: string | null
+  created_at: string
+  updated_at: string
+}
+
+export async function listPages(limit = 100): Promise<PageItem[]> {
+  const { data, error } = await supabase
+    .from('pages')
+    .select('*')
+    .order('updated_at', { ascending: false })
+    .limit(limit)
+  if (error || !data) return []
+  return data as PageItem[]
+}
+
+export async function createPage(payload: Omit<PageItem, 'id'|'created_at'|'updated_at'>): Promise<PageItem | null> {
+  const { data, error } = await supabase
+    .from('pages')
+    .insert(payload)
+    .select('*')
+    .single()
+  if (error) return null
+  return data as PageItem
+}
+
+export async function updatePage(id: string, changes: Partial<PageItem>): Promise<boolean> {
+  const { error } = await supabase
+    .from('pages')
+    .update({ ...changes, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  return !error
+}
+
+export async function deletePage(id: string): Promise<boolean> {
+  const { error } = await supabase.from('pages').delete().eq('id', id)
+  return !error
+}
+
+// Eventos: CRUD básico
+export interface EventItem {
+  id: string
+  owner_id: string | null
+  title: string
+  description: string | null
+  event_date: string | null
+  visibility: 'public' | 'friends' | 'private'
+  created_at: string
+  updated_at: string
+}
+
+export async function listEvents(limit = 100): Promise<EventItem[]> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .order('event_date', { ascending: true })
+    .limit(limit)
+  if (error || !data) return []
+  return data as EventItem[]
+}
+
+export async function createEvent(payload: Omit<EventItem, 'id'|'created_at'|'updated_at'>): Promise<EventItem | null> {
+  const { data, error } = await supabase
+    .from('events')
+    .insert(payload)
+    .select('*')
+    .single()
+  if (error) return null
+  return data as EventItem
+}
+
+export async function updateEvent(id: string, changes: Partial<EventItem>): Promise<boolean> {
+  const { error } = await supabase
+    .from('events')
+    .update({ ...changes, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  return !error
+}
+
+export async function deleteEvent(id: string): Promise<boolean> {
+  const { error } = await supabase.from('events').delete().eq('id', id)
+  return !error
+}
+
+// Blog: CRUD básico
+export interface BlogPost {
+  id: string
+  author_id: string | null
+  title: string
+  content: string | null
+  status: 'published' | 'hidden'
+  created_at: string
+  updated_at: string
+}
+
+export async function listBlogPosts(limit = 100): Promise<BlogPost[]> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .select('*')
+    .order('updated_at', { ascending: false })
+    .limit(limit)
+  if (error || !data) return []
+  return data as BlogPost[]
+}
+
+export async function createBlogPost(payload: Omit<BlogPost, 'id'|'created_at'|'updated_at'>): Promise<BlogPost | null> {
+  const { data, error } = await supabase
+    .from('blog_posts')
+    .insert(payload)
+    .select('*')
+    .single()
+  if (error) return null
+  return data as BlogPost
+}
+
+export async function updateBlogPost(id: string, changes: Partial<BlogPost>): Promise<boolean> {
+  const { error } = await supabase
+    .from('blog_posts')
+    .update({ ...changes, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  return !error
+}
+
+export async function deleteBlogPost(id: string): Promise<boolean> {
+  const { error } = await supabase.from('blog_posts').delete().eq('id', id)
   return !error
 }

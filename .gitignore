@@ -39,8 +39,10 @@ android/
 build/
 www/
 
-# Deployment artifacts folder (local-only)
-tuentis-deploy/
+# Deployment artifacts folder
+# Permitimos subir solo el contenido precompilado
+!tuentis-deploy/dist/
+!tuentis-deploy/dist/**
 
 # Temporary files
 *.tmp

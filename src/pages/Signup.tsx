@@ -63,7 +63,8 @@ export default function Signup() {
       // Si ya hay sesión (por ejemplo, confirmación desactivada), crear perfil e intentar aceptar invitación
       if (data.session && data.user) {
         const userId = data.user.id
-        await supabase.from('profiles').upsert({ id: userId, email })
+        // Solo almacenamos id y email; no usamos username en el esquema
+        await supabase.from('profiles').upsert({ id: userId, email }, { onConflict: 'id' })
         if (token && inviteStatus === 'pending') {
           await acceptInvitation(token)
         }
@@ -85,7 +86,8 @@ export default function Signup() {
   }
 
   const disabledEmail = Boolean(token)
-  const inviteInvalid = inviteStatus && inviteStatus !== 'pending'
+  // Fuerza booleano: si no hay invitación, no está inválida
+  const inviteInvalid = inviteStatus ? inviteStatus !== 'pending' : false
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6">

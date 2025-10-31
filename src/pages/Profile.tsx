@@ -80,9 +80,13 @@ const Profile: React.FC = () => {
     }
   };
 
-  const displayName = userProfile 
-    ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() || 'Usuario'
-    : 'Usuario';
+  const displayName = (() => {
+    if (userProfile) {
+      const full = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim()
+      if (full) return full
+    }
+    return user?.email || 'Usuario'
+  })();
 
   if (!user || loading) {
     return (
@@ -109,7 +113,7 @@ const Profile: React.FC = () => {
               {/* Foto de perfil */}
               <div className="profile-photo-section">
                 <img 
-                  src={userProfile?.avatar_url || `${import.meta.env.BASE_URL}default_tuenties.webp`} 
+                  src={userProfile?.avatar_url || `${import.meta.env.BASE_URL}people.svg`} 
                   alt={displayName}
                   className="profile-main-photo"
                 />
