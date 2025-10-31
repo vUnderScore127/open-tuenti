@@ -78,15 +78,35 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
         console.warn('⚠️ submitComment: optimistic add failed', optErr);
       }
       console.log('🔄 submitComment: fetching comments after insert');
-      const { data, error: fetchErr } = await supabase
+      const { data: commentsData, error: fetchErr } = await supabase
         .from('post_comments')
-        .select('id, content, created_at, user_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
+        .select('id, content, created_at, user_id')
         .eq('post_id', postId)
         .order('created_at', { ascending: false })
         .limit(20);
       if (!fetchErr) {
-        console.log('📥 submitComment: fetched comments count', (data as any)?.length ?? 0);
-        setCommentsByPost((prev) => ({ ...prev, [postId]: (data as any) || [] }));
+        console.log('📥 submitComment: fetched comments count', (commentsData as any)?.length ?? 0);
+        // Enriquecer con nombres de perfiles en un segundo fetch
+        const userIds = Array.from(new Set(((commentsData as any) || []).map((c: any) => c.user_id).filter(Boolean)));
+        let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
+        if (userIds.length > 0) {
+          const { data: profilesData, error: profilesErr } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', userIds);
+          if (!profilesErr) {
+            (profilesData as any || []).forEach((p: any) => {
+              profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name };
+            });
+          } else {
+            console.warn('⚠️ submitComment: profiles fetch error', profilesErr);
+          }
+        }
+        const merged = ((commentsData as any) || []).map((c: any) => ({
+          ...c,
+          profiles: profileMap[c.user_id],
+        }));
+        setCommentsByPost((prev) => ({ ...prev, [postId]: merged }));
       }
       if (fetchErr) {
         console.error('❌ submitComment: fetch comments error', fetchErr);
@@ -103,15 +123,35 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
     setCommentsOpen((prev) => ({ ...prev, [postId]: willOpen }));
     if (willOpen && !commentsByPost[postId]) {
       console.log('🔄 toggleComments: fetching comments');
-      const { data, error } = await supabase
+      const { data: commentsData, error } = await supabase
         .from('post_comments')
-        .select('id, content, created_at, user_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
+        .select('id, content, created_at, user_id')
         .eq('post_id', postId)
         .order('created_at', { ascending: false })
         .limit(20);
       if (!error) {
-        console.log('📥 toggleComments: fetched comments count', (data as any)?.length ?? 0);
-        setCommentsByPost((prev) => ({ ...prev, [postId]: (data as any) || [] }));
+        console.log('📥 toggleComments: fetched comments count', (commentsData as any)?.length ?? 0);
+        // Cargar nombres de perfiles en un segundo paso
+        const userIds = Array.from(new Set(((commentsData as any) || []).map((c: any) => c.user_id).filter(Boolean)));
+        let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
+        if (userIds.length > 0) {
+          const { data: profilesData, error: profilesErr } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', userIds);
+          if (!profilesErr) {
+            (profilesData as any || []).forEach((p: any) => {
+              profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name };
+            });
+          } else {
+            console.warn('⚠️ toggleComments: profiles fetch error', profilesErr);
+          }
+        }
+        const merged = ((commentsData as any) || []).map((c: any) => ({
+          ...c,
+          profiles: profileMap[c.user_id],
+        }));
+        setCommentsByPost((prev) => ({ ...prev, [postId]: merged }));
       }
       if (error) {
         console.error('❌ toggleComments: fetch error', error);

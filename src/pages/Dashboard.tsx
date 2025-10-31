@@ -158,8 +158,7 @@ const Dashboard: React.FC = () => {
               thumbnail_url, 
               file_url, 
               file_type,
-              user_id,
-              profiles!media_uploads_user_id_fkey(first_name, last_name, avatar_url)
+              user_id
             `)
             .eq('post_id', post.id)
             .limit(1)
@@ -325,16 +324,27 @@ const Dashboard: React.FC = () => {
   };
 
   const openCommentsModalForPost = async (postId: string) => {
-    const { data, error } = await supabase
+    const { data: commentsData, error } = await supabase
       .from('post_comments')
-      .select('id, content, created_at, user_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
+      .select('id, content, created_at, user_id')
       .eq('post_id', postId)
       .order('created_at', { ascending: false })
       .limit(100);
     if (error) return;
-    const items = (data || []).map((c: any) => ({
+    const userIds = Array.from(new Set(((commentsData || []) as any).map((c: any) => c.user_id).filter(Boolean)));
+    let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', userIds);
+      (profilesData as any || []).forEach((p: any) => {
+        profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name };
+      });
+    }
+    const items = ((commentsData || []) as any).map((c: any) => ({
       id: c.id,
-      title: `${(c.profiles?.first_name || '')} ${(c.profiles?.last_name || '')}`.trim() || 'Usuario',
+      title: `${(profileMap[c.user_id]?.first_name || '')} ${(profileMap[c.user_id]?.last_name || '')}`.trim() || 'Usuario',
       description: c.content,
       timestamp: getTimeAgo(new Date(c.created_at)),
     }));
@@ -397,16 +407,27 @@ const Dashboard: React.FC = () => {
       setModalOpen(true);
       return;
     }
-    const { data, error } = await supabase
+    const { data: commentsData, error } = await supabase
       .from('post_comments')
-      .select('id, content, created_at, user_id, post_id, profiles!post_comments_user_id_fkey(first_name, last_name)')
+      .select('id, content, created_at, user_id, post_id')
       .in('post_id', postIds)
       .order('created_at', { ascending: false })
       .limit(100);
     if (error) return;
-    const items = (data || []).map((c: any) => ({
+    const userIds = Array.from(new Set(((commentsData || []) as any).map((c: any) => c.user_id).filter(Boolean)));
+    let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
+    if (userIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', userIds);
+      (profilesData as any || []).forEach((p: any) => {
+        profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name };
+      });
+    }
+    const items = ((commentsData || []) as any).map((c: any) => ({
       id: c.id,
-      title: `${(c.profiles?.first_name || '')} ${(c.profiles?.last_name || '')}`.trim() || 'Usuario',
+      title: `${(profileMap[c.user_id]?.first_name || '')} ${(profileMap[c.user_id]?.last_name || '')}`.trim() || 'Usuario',
       description: c.content,
       timestamp: getTimeAgo(new Date(c.created_at)),
     }));
