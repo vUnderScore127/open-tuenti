@@ -14,6 +14,7 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
   const profileCardRef = useRef<HTMLDivElement | null>(null)
   const [notifCounts, setNotifCounts] = useState<{ postsWithComments: number; photoTags: number; photoComments: number }>({ postsWithComments: 0, photoTags: 0, photoComments: 0 })
   const [postsWithCommentsIds, setPostsWithCommentsIds] = useState<string[]>([])
+  const [singlePhotoWithCommentsMediaId, setSinglePhotoWithCommentsMediaId] = useState<string | null>(null)
 
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -119,6 +120,18 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
 
             const postsWithMedia = new Set((mediaRows || []).map((m: any) => m.post_id));
             photoComments = Object.keys(byPost).filter(pid => postsWithMedia.has(pid)).length;
+
+            // Si sólo hay una foto (post con media) que tiene comentarios, guardamos su mediaId para navegar directo
+            const commentedPostIds = new Set(Object.keys(byPost));
+            const mediaOnCommentedPosts = (mediaRows || []).filter((m: any) => commentedPostIds.has(m.post_id));
+            const uniquePostsWithMediaAndComments = new Set(mediaOnCommentedPosts.map((m: any) => m.post_id));
+            if (uniquePostsWithMediaAndComments.size === 1) {
+              const onlyPostId = Array.from(uniquePostsWithMediaAndComments)[0];
+              const firstMediaForPost = mediaOnCommentedPosts.find((m: any) => m.post_id === onlyPostId);
+              setSinglePhotoWithCommentsMediaId(firstMediaForPost?.id || null);
+            } else {
+              setSinglePhotoWithCommentsMediaId(null);
+            }
           }
         }
 
@@ -221,7 +234,16 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
                 <span className="tuenti-notification-icon">
                   <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Fotos" />
                 </span>
-                <button onClick={() => onOpenNotification?.('comments')} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                <button
+                  onClick={() => {
+                    if (notifCounts.photoComments === 1 && singlePhotoWithCommentsMediaId) {
+                      history.push(`/photo/${singlePhotoWithCommentsMediaId}`)
+                    } else {
+                      onOpenNotification?.('comments')
+                    }
+                  }}
+                  style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}
+                >
                   {notifCounts.photoComments} fotos con comentarios
                 </button>
               </li>
