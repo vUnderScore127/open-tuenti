@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build --outDir tuentis-deploy/dist --emptyOutDir",
     "build:prod": "vite build --outDir tuentis-deploy/dist --emptyOutDir",
+    "postbuild": "node -e \"require('fs').copyFileSync('tuentis-deploy/dist/index.html','tuentis-deploy/dist/404.html')\"",
     "preview": "vite preview"
   },
   "dependencies": {
