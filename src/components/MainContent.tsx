@@ -166,31 +166,6 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                       <video src={p.videoUrl} controls className="tuenti-post-image-img" />
                     </div>
                   )}
-                  {/* Filas verdes de actividad bajo el post: comentarios y fotos etiquetadas */}
-                  {(p.commentsCount || p.taggedPhotosCount) && (
-                    <ul className="tuenti-notifications tuenti-post-activity">
-                      {p.commentsCount ? (
-                        <li>
-                          <span className="tuenti-notification-icon">
-                            <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentarios" />
-                          </span>
-                          <button onClick={() => onOpenNotification?.('comments', p.id)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
-                            {p.commentsCount} comentarios
-                          </button>
-                        </li>
-                      ) : null}
-                      {p.taggedPhotosCount ? (
-                        <li>
-                          <span className="tuenti-notification-icon">
-                            <img src={`${import.meta.env.BASE_URL}tag.svg`} alt="Etiquetas" />
-                          </span>
-                          <button onClick={() => onOpenNotification?.('tags', p.id)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
-                            {p.taggedPhotosCount} fotos etiquetadas
-                          </button>
-                        </li>
-                      ) : null}
-                    </ul>
-                  )}
                   <div className="tuenti-post-actions">
                     <button className="tuenti-post-action-button" onClick={() => toggleCommentBox(p.id)}>
                       <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentar" className="tuenti-post-action-icon" />
@@ -238,6 +213,31 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                         </ul>
                       )}
                     </div>
+                  )}
+                  {/* Filas verdes de actividad: ahora debajo de acciones y comentarios */}
+                  {(p.commentsCount || p.taggedPhotosCount) && (
+                    <ul className="tuenti-notifications tuenti-post-activity" style={{ marginTop: 8 }}>
+                      {p.commentsCount ? (
+                        <li>
+                          <span className="tuenti-notification-icon">
+                            <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentarios" />
+                          </span>
+                          <button onClick={() => onOpenNotification?.('comments', p.id)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                            {p.commentsCount} comentarios
+                          </button>
+                        </li>
+                      ) : null}
+                      {p.taggedPhotosCount ? (
+                        <li>
+                          <span className="tuenti-notification-icon">
+                            <img src={`${import.meta.env.BASE_URL}tag.svg`} alt="Etiquetas" />
+                          </span>
+                          <button onClick={() => onOpenNotification?.('tags', p.id)} style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0 }}>
+                            {p.taggedPhotosCount} fotos etiquetadas
+                          </button>
+                        </li>
+                      ) : null}
+                    </ul>
                   )}
                 </div>
               </div>

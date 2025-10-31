@@ -1,0 +1,87 @@
+/* Estilos precisos del Perfil (Tuenti clásico) */
+
+.profile-center {
+  padding: 16px 18px;
+}
+
+.profile-topbar {
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.profile-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+
+.profile-private-message {
+  margin-left: auto;
+  font-size: 12px;
+  color: #333;
+  padding: 4px 8px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.profile-subnav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.profile-subnav-link {
+  font-size: 12px;
+  color: #3571b4;
+  text-decoration: none;
+}
+
+.profile-subnav-link:hover { text-decoration: underline; }
+.profile-separator { color: #999; font-size: 12px; }
+
+/* Estado burbuja */
+.profile-status-bubble {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.profile-status-text { font-size: 13px; color: #333; }
+.profile-status-time { font-size: 12px; color: #999; }
+
+/* Espacio personal */
+.profile-personal { margin-bottom: 16px; }
+.profile-section-title { font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px; }
+.profile-personal-content { display: flex; flex-direction: column; gap: 8px; }
+.personal-item { display: flex; align-items: center; gap: 8px; }
+.personal-thumb { width: 90px; height: 60px; background: #ddd; border-radius: 3px; }
+.personal-text { font-size: 12px; color: #333; }
+.personal-meta { font-size: 11px; color: #777; }
+
+/* Tablón */
+.profile-board { }
+.board-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.board-avatar { width: 24px; height: 24px; background: #e5e5e5; border-radius: 3px; }
+.board-input { flex: 1; border: 1px solid #ccc; border-radius: 3px; padding: 6px 8px; font-size: 12px; }
+.board-list { display: flex; flex-direction: column; gap: 10px; }
+.board-post { display: flex; gap: 8px; }
+.board-post-avatar { width: 24px; height: 24px; background: #e5e5e5; border-radius: 3px; }
+.board-post-body { flex: 1; }
+.board-post-author { font-size: 12px; font-weight: 600; color: #333; }
+.board-post-text { font-size: 12px; color: #333; }
+.board-post-time { font-size: 11px; color: #777; }

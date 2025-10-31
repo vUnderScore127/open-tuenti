@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { getUserProfile, UserProfile } from '../lib/supabase';
 import '../styles/tuenti-dashboard.css';
+import '../styles/tuenti-profile.css';
 
 interface Friend {
   id: string;
@@ -174,52 +175,64 @@ const Profile: React.FC = () => {
             </div>
 
             {/* Columna Central */}
-            <div className="tuenti-main-content">
-              {/* Header del perfil */}
-              <div className="profile-header">
-                <div className="profile-tabs">
-                  <a href="#" className="tab-link">Mis álbumes de fotos (4)</a>
-                  <a href="#" className="tab-link">Mis canales ▼</a>
-                  <a href="#" className="tab-link edit-profile">Editar mi perfil</a>
+            <div className="tuenti-main-content profile-center">
+              {/* Encabezado de perfil con nombre grande y acciones */}
+              <div className="profile-topbar">
+                <div className="profile-title-row">
+                  <h1 className="profile-name">{displayName}</h1>
+                  <button className="profile-private-message">Mensaje privado</button>
+                </div>
+                <div className="profile-subnav">
+                  <a className="profile-subnav-link" href="#">Ver álbumes de fotos (10)</a>
+                  <span className="profile-separator">|</span>
+                  <a className="profile-subnav-link" href="#">Vídeos</a>
+                  <span className="profile-separator">▼</span>
                 </div>
               </div>
 
-              {/* Campo ¿Qué estás haciendo? */}
-              <div className="status-update-section">
-                <div className="status-input-container">
-                  <input 
-                    type="text" 
-                    placeholder="¿Qué estás haciendo?"
-                    value={statusText}
-                    onChange={(e) => setStatusText(e.target.value)}
-                    className="status-input"
-                  />
-                  <div className="status-actions">
-                    <button className="status-btn">📷</button>
-                    <button className="status-btn">📹</button>
+              {/* Estado tipo burbuja */}
+              <div className="profile-status-bubble">
+                <span className="profile-status-text">{userProfile?.status_text || 'Escribe aquí tu estado'}</span>
+                <span className="profile-status-time">hace 15 horas</span>
+              </div>
+
+              {/* Espacio personal */}
+              <div className="profile-personal">
+                <h3 className="profile-section-title">Espacio personal</h3>
+                <div className="profile-personal-content">
+                  <div className="personal-item">
+                    <div className="personal-thumb" />
+                    <div className="personal-text">
+                      <strong>Martha And The Muffins - Echo Beach</strong>
+                      <div className="personal-meta">14 vistas</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Mi espacio personal */}
-              <div className="personal-space-section">
-                <h3 className="section-title">Mi espacio personal</h3>
-                <div className="section-content">
-                  <p className="empty-message">Tu espacio personal está vacío. <a href="#" className="link-blue">Crea tu primera entrada.</a></p>
+              {/* Tablón */}
+              <div className="profile-board">
+                <div className="board-header">
+                  <div className="board-avatar" />
+                  <input className="board-input" type="text" placeholder="Escribe aquí..." />
                 </div>
-              </div>
-
-              {/* Mi tablón */}
-              <div className="board-section">
-                <h3 className="section-title">Mi tablón</h3>
-                <div className="board-tabs">
-                  <span className="board-tab">Mostrar</span>
-                  <a href="#" className="board-tab-link">Todo</a>
-                  <a href="#" className="board-tab-link">Estados</a>
-                  <a href="#" className="board-tab-link">Comentarios</a>
-                </div>
-                <div className="section-content">
-                  <p className="empty-message">Este tablón está vacío.</p>
+                <div className="board-list">
+                  <div className="board-post">
+                    <div className="board-post-avatar" />
+                    <div className="board-post-body">
+                      <div className="board-post-author">Sara Sanz</div>
+                      <div className="board-post-text">Tienes que recordarme otra vez la peli mala de ayer, que tengo muchísimas ganas de verla :P</div>
+                      <div className="board-post-time">13 de Dic de 2009, a las 02:12</div>
+                    </div>
+                  </div>
+                  <div className="board-post">
+                    <div className="board-post-avatar" />
+                    <div className="board-post-body">
+                      <div className="board-post-author">Lara Castro</div>
+                      <div className="board-post-text">siii, está genial esa mezcla, la primera vez que la oí en un bar me encantó y la estuve tarareando durante mucho tiempo! :)</div>
+                      <div className="board-post-time">16 de Dic de 2009, a las 22:06</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
