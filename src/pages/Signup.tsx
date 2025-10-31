@@ -87,8 +87,42 @@ export default function Signup() {
       // Si ya hay sesión (por ejemplo, confirmación desactivada), crear perfil e intentar aceptar invitación
       if (data.session && data.user) {
         const userId = data.user.id
-        // Solo almacenamos id y email; no usamos username en el esquema
-        await supabase.from('profiles').upsert({ id: userId, email }, { onConflict: 'id' })
+        
+        // Calcular la edad
+        const calculateAge = (day: number, month: number, year: number): number => {
+          const today = new Date()
+          const birthDate = new Date(year, month - 1, day)
+          let age = today.getFullYear() - birthDate.getFullYear()
+          const monthDiff = today.getMonth() - birthDate.getMonth()
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--
+          }
+          return age
+        }
+
+        // Crear perfil completo con todos los campos del formulario
+        const profileData = {
+          id: userId,
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          gender,
+          birth_day: parseInt(dobDay),
+          birth_month: parseInt(dobMonth),
+          birth_year: parseInt(dobYear),
+          age: calculateAge(parseInt(dobDay), parseInt(dobMonth), parseInt(dobYear)),
+          country,
+          city,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+
+        const { error: profileError } = await supabase.from('profiles').upsert(profileData, { onConflict: 'id' })
+        if (profileError) {
+          console.error('Error creating profile:', profileError)
+          throw new Error('Error al crear el perfil: ' + profileError.message)
+        }
+
         if (token && inviteStatus === 'pending') {
           await acceptInvitation(token)
         }
@@ -103,7 +137,13 @@ export default function Signup() {
         description: 'Te hemos enviado un enlace de confirmación. Al confirmarlo volverás a la invitación para finalizar el acceso.',
       })
     } catch (err: any) {
-      toast({ title: 'Error al registrarte', description: err.message, variant: 'destructive' })
+      console.error('Error during signup process:', err)
+      const errorMessage = err.message || 'Error desconocido durante el registro'
+      toast({ 
+        title: 'Error al registrarte', 
+        description: errorMessage, 
+        variant: 'destructive' 
+      })
     } finally {
       setLoading(false)
     }
