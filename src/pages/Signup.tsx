@@ -131,11 +131,15 @@ export default function Signup() {
         return
       }
 
-      // Si requiere verificación por email
+      // Si requiere verificación por email, redirigimos a página persistente
       toast({
         title: 'Verifica tu email',
-        description: 'Te hemos enviado un enlace de confirmación. Al confirmarlo volverás a la invitación para finalizar el acceso.',
+        description: 'Te hemos enviado un enlace de confirmación.',
       })
+      const params = new URLSearchParams()
+      params.set('email', email)
+      if (token) params.set('token', token)
+      history.push(`/confirm-email?${params.toString()}`)
     } catch (err: any) {
       console.error('Error during signup process:', err)
       const errorMessage = err.message || 'Error desconocido durante el registro'

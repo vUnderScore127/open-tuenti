@@ -15,6 +15,7 @@ import Admin from './pages/Admin';
 import Invite from './pages/Invite';
 import Signup from './pages/Signup';
 import NeedInvite from './pages/NeedInvite';
+import ConfirmEmail from './pages/ConfirmEmail';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -57,6 +58,7 @@ const App: React.FC = () => (
               <Route exact path="/admin" component={Admin} />
               <Route exact path="/invite/:token" component={Invite} />
               <Route exact path="/signup" component={Signup} />
+              <Route exact path="/confirm-email" component={ConfirmEmail} />
               <Route exact path="/needinvite" component={NeedInvite} />
               <Route exact path="/">
                 <Redirect to="/login" />
