@@ -5,7 +5,8 @@ import { useChatContext } from '../contexts/ChatContext';
 import { useAuth } from '../lib/auth';
 import Header from '../components/Header';
 import { ImageCropper } from '../components/ImageCropper';
-import { supabase } from '../lib/supabase';
+import { supabase, createInvitation, updateInvitationStatus, getProfilesByIds } from '../lib/supabase';
+import type { Invitation } from '../lib/supabase';
 
 // Función auxiliar para calcular la edad - MOVER AQUÍ
 const calculateAge = (day: number, month: number, year: number): number => {
@@ -52,12 +53,21 @@ const Settings: React.FC = () => {
   const [activeSection, setActiveSection] = useState('info');
   const [userProfile, setUserProfile] = useState<ExtendedUserProfile | null>(null);
   const [uploading, setUploading] = useState(false);
+  // Invitaciones
+  const MAX_INVITES = 10;
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [invites, setInvites] = useState<Invitation[]>([]);
+  const [inviteProfiles, setInviteProfiles] = useState<Record<string, any>>({});
+  const remainingInvites = Math.max(0, MAX_INVITES - invites.filter(i => i.status === 'pending').length);
   
   // Add these missing state variables:
   const [showCropper, setShowCropper] = useState(false);
   const [selectedImageSrc, setSelectedImageSrc] = useState<string>('');
   
   const [formData, setFormData] = useState({
+    first_name: '',
+    last_name: '',
     email: '',
     gender: '',
     birth_day: '',
@@ -74,6 +84,7 @@ const Settings: React.FC = () => {
   });
   const history = useHistory();
 
+
   // Cargar perfil del usuario
   useEffect(() => {
     const loadUserProfile = async () => {
@@ -87,6 +98,8 @@ const Settings: React.FC = () => {
         if (data) {
           setUserProfile(data);
           setFormData({
+            first_name: data.first_name || '',
+            last_name: data.last_name || '',
             email: data.email || '',
             gender: data.gender || '',
             birth_day: data.birth_day?.toString() || '',
@@ -107,6 +120,77 @@ const Settings: React.FC = () => {
     
     loadUserProfile();
   }, [user]);
+
+  // Cargar invitaciones del usuario
+  useEffect(() => {
+    const loadInvites = async () => {
+      if (!user) return;
+      setInvitesLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('invitations')
+          .select('*')
+          .eq('invited_by', user.id)
+          .order('created_at', { ascending: false })
+          .limit(100);
+        const rows: Invitation[] = (error || !data) ? [] : (data as Invitation[]);
+        setInvites(rows);
+        const ids = rows.map(r => r.invited_user_id).filter(Boolean) as string[];
+        if (ids.length > 0) {
+          const profiles = await getProfilesByIds(ids);
+          setInviteProfiles(profiles);
+        } else {
+          setInviteProfiles({});
+        }
+      } finally {
+        setInvitesLoading(false);
+      }
+    };
+    loadInvites();
+  }, [user]);
+
+  const handleCreateInvite = async () => {
+    if (!user) return;
+    const email = inviteEmail.trim();
+    if (!email) {
+      setToastMessage('Introduce un correo para crear la invitación');
+      setShowToast(true);
+      return;
+    }
+    if (remainingInvites <= 0) {
+      setToastMessage('Has alcanzado el límite de invitaciones');
+      setShowToast(true);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const inv = await createInvitation(email, user.id);
+      if (inv) {
+        setInvites(prev => [inv, ...prev]);
+        setInviteEmail('');
+      }
+    } catch (e) {
+      setToastMessage('Error al crear la invitación');
+      setShowToast(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelInvite = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const ok = await updateInvitationStatus(id, 'revoked');
+      if (ok) {
+        setInvites(prev => prev.map(i => i.id === id ? { ...i, status: 'revoked' } : i));
+      } else {
+        setToastMessage('No se pudo cancelar la invitación');
+        setShowToast(true);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSoundToggle = () => {
     setSoundEnabled(!soundEnabled);
@@ -201,7 +285,8 @@ const handleSaveProfile = async () => {
     { id: 'otros', label: 'Otros servicios', icon: '' },
     { id: 'notificaciones', label: 'Notificaciones', icon: '' },
     { id: 'tuenti-movil', label: 'Tuenti Móvil', icon: '' },
-    { id: 'preferencias', label: 'Preferencias de mi cuenta', icon: '' }
+    { id: 'preferencias', label: 'Preferencias de mi cuenta', icon: '' },
+    { id: 'invitaciones', label: 'Invitaciones', icon: '' }
   ];
   
 const renderContent = () => {
@@ -218,6 +303,26 @@ const renderContent = () => {
               {/* Nueva sección: Información básica */}
               <div className="form-section">
                 <h3>Información básica</h3>
+                <div className="form-row">
+                  <label>Nombre:</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.first_name}
+                    onChange={(e) => handleInputChange('first_name', e.target.value)}
+                    placeholder="Tu nombre"
+                  />
+                </div>
+                <div className="form-row">
+                  <label>Apellido:</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={formData.last_name}
+                    onChange={(e) => handleInputChange('last_name', e.target.value)}
+                    placeholder="Tu apellido"
+                  />
+                </div>
                 
                 
                 <div className="form-row">
@@ -487,6 +592,8 @@ const renderContent = () => {
               </div>
             </div>
 
+            {/* Modo oscuro movido a la sección "Diseño" */}
+
             <div className="setting-actions">
               <button
                 onClick={handleSaveProfile}
@@ -505,6 +612,76 @@ const renderContent = () => {
                 {isLoading ? 'Cerrando...' : 'Cerrar sesión'}
               </button>
             </div>
+            </div>
+          );
+      case 'invitaciones':
+        return (
+          <div className="settings-content">
+            <h2>Invitaciones</h2>
+            <p className="invite-summary">Te quedan <strong>{remainingInvites}</strong> invitaciones disponibles (máximo {MAX_INVITES}).</p>
+            <div className="invite-create">
+              <input
+                type="email"
+                className="form-input"
+                placeholder="Correo del invitado"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                disabled={remainingInvites <= 0}
+              />
+              <button className="btn-primary" disabled={remainingInvites <= 0 || !inviteEmail} onClick={handleCreateInvite}>
+                Crear enlace
+              </button>
+            </div>
+            {remainingInvites <= 0 && (
+              <p className="invite-warning">Has alcanzado el límite. No puedes crear más invitaciones.</p>
+            )}
+
+            <div className="section-divider"></div>
+
+            {invitesLoading ? (
+              <p>Cargando invitaciones...</p>
+            ) : invites.length === 0 ? (
+              <p>No has creado ninguna invitación todavía.</p>
+            ) : (
+              <div className="invite-list">
+                {invites.map((inv) => {
+                  const redeemedBy = inv.invited_user_id ? inviteProfiles[inv.invited_user_id] : null;
+                  const link = `${window.location.origin}/invite?token=${inv.token}`;
+                  return (
+                    <div key={inv.id} className="invite-item">
+                      <div className="invite-row">
+                        <div className="invite-col">
+                          <div className="invite-label">Correo</div>
+                          <div className="invite-value">{inv.email || '—'}</div>
+                        </div>
+                        <div className="invite-col">
+                          <div className="invite-label">Enlace</div>
+                          <div className="invite-value invite-link">
+                            <a href={link} target="_blank" rel="noreferrer">{link}</a>
+                            <button className="btn-secondary" onClick={() => navigator.clipboard.writeText(link)}>Copiar</button>
+                          </div>
+                        </div>
+                        <div className="invite-col">
+                          <div className="invite-label">Estado</div>
+                          <div className={`invite-value status-${inv.status}`}>{inv.status}</div>
+                        </div>
+                        <div className="invite-col">
+                          <div className="invite-label">Canjeado por</div>
+                          <div className="invite-value">{redeemedBy ? `${redeemedBy.username || redeemedBy.display_name || redeemedBy.full_name || redeemedBy.id}` : '—'}</div>
+                        </div>
+                        <div className="invite-actions">
+                          {inv.status === 'pending' ? (
+                            <button className="btn-danger" onClick={() => handleCancelInvite(inv.id)}>Cancelar</button>
+                          ) : (
+                            <span className="invite-note">No disponible</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       
@@ -984,6 +1161,44 @@ const renderContent = () => {
           opacity: 0.6;
           cursor: not-allowed;
         }
+
+        /* Dark mode (global overrides for Settings layout) */
+        .dark .tuenti-container { background: #0f172a; }
+        .dark .tuenti-layout { background: #111827; }
+        .dark .tuenti-sidebar { background: #1f2937; border-right-color: #374151; }
+        .dark .tuenti-menu-item { background: #1f2937; border-bottom-color: #374151; color: #93c5fd; }
+        .dark .tuenti-menu-item:hover { background: #111827; }
+        .dark .tuenti-menu-item.active { background: #111827; color: #ffffff; }
+        .dark .tuenti-main { background: #111827; color: #e5e7eb; }
+        .dark .form-row label { color: #e5e7eb; }
+        .dark .form-input, .dark .form-select { background: #111827; color: #e5e7eb; border-color: #374151; }
+        .dark .section-divider { background: #374151; }
+        .dark .settings-content h2 { color: #e5e7eb; border-bottom-color: #374151; }
+        .dark .setting-item { border-bottom-color: #374151; }
+        .dark .setting-item label { color: #e5e7eb; }
+        .dark .setting-description { color: #9ca3af; }
+
+        /* Invitaciones */
+        .invite-summary { color: #666; }
+        .invite-create { display: flex; gap: 8px; align-items: center; }
+        .invite-warning { color: #B45309; background: #FEF3C7; border: 1px solid #F59E0B; padding: 8px; border-radius: 4px; }
+        .invite-list { display: flex; flex-direction: column; gap: 8px; }
+        .invite-item { background: white; border: 1px solid #D1D5DB; border-radius: 6px; }
+        .invite-row { display: grid; grid-template-columns: 1.2fr 2fr 1fr 1.2fr auto; gap: 12px; padding: 12px; align-items: center; }
+        .invite-col { display: flex; flex-direction: column; gap: 4px; }
+        .invite-label { font-size: 12px; color: #6B7280; }
+        .invite-value { font-size: 14px; color: #111827; }
+        .invite-link { display: flex; align-items: center; gap: 8px; }
+        .invite-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .invite-note { font-size: 12px; color: #6B7280; }
+
+        /* Dark mode - invitaciones */
+        .dark .invite-summary { color: #9CA3AF; }
+        .dark .invite-warning { color: #F59E0B; background: #1F2937; border-color: #F59E0B; }
+        .dark .invite-item { background: #0b1220; border-color: #374151; }
+        .dark .invite-label { color: #9CA3AF; }
+        .dark .invite-value { color: #E5E7EB; }
+        .dark .invite-link a { color: #93C5FD; }
       `}</style>
     </IonPage>
   );
