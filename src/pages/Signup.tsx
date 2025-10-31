@@ -35,17 +35,23 @@ export default function Signup() {
     const params = new URLSearchParams(location.search)
     const t = params.get('token')
     setToken(t)
+    // Si no hay token, redirigimos a la página de invitaciones
+    if (!t) {
+      history.replace('/needinvite')
+      return
+    }
     if (t) {
       verifyInvitationToken(t)
         .then(inv => {
-          if (inv) {
+          if (inv && inv.status === 'pending') {
             setEmail(inv.email || '')
             setInviteStatus(inv.status as any)
           } else {
             setInviteStatus('revoked')
+            history.replace('/needinvite')
           }
         })
-        .catch(() => setInviteStatus('revoked'))
+        .catch(() => { setInviteStatus('revoked'); history.replace('/needinvite') })
     }
   }, [location.search])
 
