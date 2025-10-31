@@ -63,13 +63,19 @@
   transition: all 0.4s ease-out;
 }
 
+/* Inputs más cortos para email y contraseñas */
+.signup .input-group.narrow .field-input {
+  max-width: 300px;
+}
+
 .signup .field-input:focus {
   box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 6px 5px -5px rgba(0, 0, 0, 0.5) inset, 0 0 15px -3px rgba(255, 255, 255, 0.6);
   outline: none;
 }
 
+
 .signup .submit {
-  background: linear-gradient(to bottom, rgba(128, 203, 234, 1) 0%, rgba(98, 196, 239, 1) 100%);
+  background-color: #5785B6; /* mismo azul que Admin */
   border: 1px solid #3a6b97;
   color: white;
   border-radius: 6px;
@@ -79,9 +85,7 @@
   min-width: 120px;
 }
 
-.signup .submit:hover {
-  background: linear-gradient(to bottom, rgba(144, 206, 234, 1) 0%, rgba(115, 197, 239, 1) 100%);
-}
+.signup .submit:hover { background-color: #4a7299; }
 
 .signup .submit:disabled {
   opacity: 0.6;

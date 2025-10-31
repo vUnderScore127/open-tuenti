@@ -137,7 +137,7 @@ export default function Signup() {
             </div>
           </div>
           <div className="form-row">
-            <div className="input-group">
+            <div className="input-group narrow">
               <label className="field-label">Email</label>
               {/* Forzamos estilos clásicos sobre el input */}
               <Input
@@ -152,12 +152,20 @@ export default function Signup() {
           </div>
 
           <div className="form-row">
-            <div className="input-group">
+            <div className="input-group narrow">
               <label className="field-label">Contraseña</label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                className="field-input"
+                required
+              />
+              <label className="field-label">Confirmar contraseña</label>
+              <Input
+                type="password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
                 className="field-input"
                 required
               />
@@ -226,18 +234,6 @@ export default function Signup() {
             </div>
           </div>
 
-          <div className="form-row">
-            <div className="input-group">
-              <label className="field-label">Confirmar contraseña</label>
-              <Input
-                type="password"
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                className="field-input"
-                required
-              />
-            </div>
-          </div>
 
           <div className="form-row" style={{ justifyContent: 'flex-end' }}>
             <button type="submit" className="submit" disabled={loading || inviteInvalid}>
