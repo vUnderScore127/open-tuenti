@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Settings from './pages/Settings';
 import { ChatProvider } from './contexts/ChatContext';
 import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
 import PrivateMessages from './pages/PrivateMessages';
 import People from './pages/People';
 import Videos from './pages/Videos';
@@ -45,8 +46,8 @@ setupIonicReact();
 
 const App: React.FC = () => (
   <IonApp>
-    <AuthProvider>
-      <AlertProvider>
+    <AlertProvider>
+      <AuthProvider>
         <ChatProvider>
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <IonRouterOutlet>
@@ -55,7 +56,10 @@ const App: React.FC = () => (
               <Route exact path="/reset-password" component={ResetPassword} />
               <Route exact path="/dashboard" component={Dashboard} />
               <Route exact path="/settings" component={Settings} />
-              <Route exact path="/profile/:userId" component={Profile} />
+              <Route exact path="/profile-id=:username" component={PublicProfile} />
+              {/* Soporte alternativo para /profile-id/:username por compatibilidad */}
+              <Route exact path="/profile-id/:username" component={PublicProfile} />
+              <Route exact path="/profile/:userId" component={PublicProfile} />
               <Route exact path="/profile" component={Profile} />
               <Route exact path="/privatemessages" component={PrivateMessages} />
               <Route exact path="/people" component={People} />
@@ -77,8 +81,8 @@ const App: React.FC = () => (
             <GlobalAlert />
           </BrowserRouter>
         </ChatProvider>
-      </AlertProvider>
-    </AuthProvider>
+      </AuthProvider>
+    </AlertProvider>
   </IonApp>
 );
 

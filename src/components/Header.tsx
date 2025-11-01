@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { IonHeader, IonToolbar, IonTitle, IonButton, IonIcon, IonSearchbar } from '@ionic/react';
 import { logOutOutline, settingsOutline, helpCircleOutline, cloudUploadOutline } from 'ionicons/icons';
 import { useAuth } from '../lib/auth';
+import { useChatContext } from '@/contexts/ChatContext';
 import { supabase } from '@/lib/supabase';
 import { useHistory, useLocation } from 'react-router-dom';
 import '../styles/tuenti-header.css';
@@ -44,7 +45,11 @@ const Header: React.FC = () => {
     loadRole();
   }, [user?.id]);
 
+  const { setOnlineStatus } = useChatContext();
   const handleLogout = async () => {
+    try {
+      await setOnlineStatus(false);
+    } catch {}
     await signOut();
     history.push('/login');
   };

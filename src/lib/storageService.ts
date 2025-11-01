@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-const BUCKET_NAME = 'tuenties-archive';
+export const BUCKET_NAME = 'tuentibucket';
 const MAX_FILE_SIZE = 52428800; // 50MB en bytes
 
 // Función para generar nombre único de archivo

@@ -14,6 +14,7 @@ interface Friend {
   last_name: string;
   avatar_url?: string;
   is_online: boolean;
+  username?: string;
 }
 
 const Profile: React.FC = () => {
@@ -49,15 +50,16 @@ const Profile: React.FC = () => {
   const loadFriends = async () => {
     try {
       const { data, error } = await supabase
-        .from('friends')
+        .from('friendships')
         .select(`
           friend_id,
-          profiles!friends_friend_id_fkey (
+          profiles!friendships_friend_id_fkey (
             id,
             first_name,
             last_name,
             avatar_url,
-            is_online
+            is_online,
+            username
           )
         `)
         .eq('user_id', user?.id)
@@ -71,7 +73,8 @@ const Profile: React.FC = () => {
         first_name: (item.profiles as any).first_name,
         last_name: (item.profiles as any).last_name,
         avatar_url: (item.profiles as any).avatar_url,
-        is_online: (item.profiles as any).is_online
+        is_online: (item.profiles as any).is_online,
+        username: (item.profiles as any).username
       })) || [];
 
       setFriends(friendsList);
@@ -80,12 +83,23 @@ const Profile: React.FC = () => {
     }
   };
 
+  const goToPublicProfile = (f: Friend) => {
+    try {
+      const path = `profile/${f.id}`
+      window.location.assign(`${import.meta.env.BASE_URL}${path}`)
+    } catch (e) {
+      console.error('Error abriendo perfil:', e)
+      alert('No se pudo abrir el perfil. Inténtalo más tarde.')
+    }
+  }
+
   const displayName = (() => {
     if (userProfile) {
       const full = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim()
       if (full) return full
+      if (userProfile.username && userProfile.username.length > 0) return userProfile.username
     }
-    return user?.email || 'Usuario'
+    return user?.email || user?.id || ''
   })();
 
   if (!user || loading) {
@@ -258,10 +272,15 @@ const Profile: React.FC = () => {
                         alt={`${friend.first_name} ${friend.last_name}`}
                         className="friend-avatar"
                       />
-                      <span className="friend-name">
+                      <button
+                        className="friend-name"
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}
+                        onClick={() => goToPublicProfile(friend)}
+                        title="Ver perfil"
+                      >
                         {friend.first_name}<br />
                         {friend.last_name}
-                      </span>
+                      </button>
                     </div>
                   ))}
                 </div>

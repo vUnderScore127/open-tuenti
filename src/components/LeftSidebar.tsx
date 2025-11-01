@@ -1,37 +1,87 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useHistory } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
-import { getUserProfile, UserProfile } from '../lib/supabase'
+import { getBasicProfile } from '../lib/supabase'
 import { supabase } from '@/lib/supabase'
 import '../styles/tuenti-left-sidebar.css'
 
+type BasicUserProfile = { id: string; first_name?: string; last_name?: string; avatar_url?: string }
+
 export default function LeftSidebar({ onOpenNotification }: { onOpenNotification?: (type: 'comments' | 'tags') => void }) {
-  const { user: authUser } = useAuth()
+  const { user: authUser, loading: authLoading } = useAuth()
   const history = useHistory()
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [userProfile, setUserProfile] = useState<BasicUserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [displayName, setDisplayName] = useState<string>('')
   const sidebarRef = useRef<HTMLDivElement | null>(null)
   const profileCardRef = useRef<HTMLDivElement | null>(null)
   const [notifCounts, setNotifCounts] = useState<{ postsWithComments: number; photoTags: number; photoComments: number }>({ postsWithComments: 0, photoTags: 0, photoComments: 0 })
   const [postsWithCommentsIds, setPostsWithCommentsIds] = useState<string[]>([])
   const [singlePhotoWithCommentsMediaId, setSinglePhotoWithCommentsMediaId] = useState<string | null>(null)
+  // Evitar bucles de creación de perfil (eliminado fallback de creación)
+  // const triedCreateProfileRef = useRef<boolean>(false)
+
+  const getInstantNameFromMetadata = (): string => {
+    try {
+      const meta: any = (authUser as any)?.user_metadata || {}
+      const fn = String(meta.first_name || '').trim()
+      const ln = String(meta.last_name || '').trim()
+      const full = `${fn} ${ln}`.trim()
+      if (full) return full
+      const alt = String(meta.full_name || meta.name || '').trim()
+      return alt || ''
+    } catch {
+      return ''
+    }
+  }
 
   useEffect(() => {
     const loadUserProfile = async () => {
-      console.log('🔍 LeftSidebar - authUser:', authUser)
-      
+      // Esperar a que el estado de autenticación termine de inicializarse
+      if (authLoading) {
+        return
+      }
+
       if (!authUser?.id) {
-        console.log('❌ No authUser.id found')
+        // Usuario no autenticado cuando ya terminó la inicialización de auth
+        setUserProfile(null)
         setLoading(false)
         return
       }
 
-      console.log('📡 Loading profile for userId:', authUser.id)
-      
+      setLoading(true)
+      // Fijar nombre instantáneo desde metadatos si existe (sin email)
+      const metaName = getInstantNameFromMetadata()
+      if (metaName) setDisplayName(metaName)
+
+      // Cargar del caché local instantáneamente si existe
       try {
-        const profile = await getUserProfile(authUser.id)
+        const cacheKey = `basic_profile_${authUser.id}`
+        const cachedRaw = localStorage.getItem(cacheKey)
+        if (cachedRaw) {
+          const cached: BasicUserProfile = JSON.parse(cachedRaw)
+          setUserProfile(cached)
+          const name = `${cached.first_name || ''} ${cached.last_name || ''}`.trim()
+          if (name) {
+            setDisplayName(name)
+          }
+        }
+      } catch (_) {}
+
+      try {
+        const profile = await getBasicProfile(authUser.id)
         console.log('📊 Profile loaded:', profile)
-        setUserProfile(profile)
+        setUserProfile(profile || null)
+        // Actualizar caché y nombre
+        if (profile) {
+          try {
+            localStorage.setItem(`basic_profile_${authUser.id}`, JSON.stringify(profile))
+          } catch (_) {}
+          const name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
+          if (name) {
+            setDisplayName(name)
+          }
+        }
       } catch (error) {
         console.error('❌ Error loading user profile:', error)
       } finally {
@@ -40,25 +90,16 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
     }
 
     loadUserProfile()
-  }, [authUser?.id])
+  }, [authUser?.id, authLoading])
 
-  const displayName = (() => {
-    if (userProfile) {
-      const full = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim()
-      if (full) return full
-    }
-    return authUser?.email || 'Usuario'
-  })()
+  // Recalcular nombre si cambia el perfil recibido
+  useEffect(() => {
+    if (!userProfile) return
+    const name = `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim()
+    if (name) setDisplayName(name)
+  }, [userProfile?.first_name, userProfile?.last_name])
   
-  console.log('🏷️ Display name:', displayName, 'from profile:', userProfile)
-  console.log('🔍 Name parts:', {
-    first_name: userProfile?.first_name,
-    last_name: userProfile?.last_name,
-    combined: userProfile ? `${userProfile.first_name || ''} ${userProfile.last_name || ''}`.trim() : 'No profile'
-  })
-  
-  // Note: total_visits field doesn't exist in database, using placeholder
-  const totalVisits = 0
+  // Visitas fijadas (hardcoded)
 
   useEffect(() => {
     const updateGaps = () => {
@@ -84,28 +125,26 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
     const loadNotifications = async () => {
       try {
         if (!authUser?.id) return;
-        // Comentarios en tus estados
+        // Estados con comentarios (notificaciones no leídas tipo 'status_comment')
+        const { data: notifRows } = await supabase
+          .from('notifications')
+          .select('id, related_id')
+          .eq('user_id', authUser.id)
+          .eq('type', 'status_comment')
+          .eq('is_read', false);
+        const unreadStatusPostIds = Array.from(new Set((notifRows || []).map((n: any) => n.related_id).filter(Boolean)));
+        const postsWithComments = unreadStatusPostIds.length;
+        setPostsWithCommentsIds(unreadStatusPostIds);
+
+        // Fotos con etiquetas/comentarios: mantenemos lógica previa (podemos migrar más tarde)
+        let photoComments = 0;
+        let photoTags = 0;
         const { data: postRows } = await supabase
           .from('posts')
           .select('id')
           .eq('user_id', authUser.id);
         const postIds = (postRows || []).map((p: any) => p.id);
-        let postsWithComments = 0;
-        let photoComments = 0;
-        let photoTags = 0;
         if (postIds.length > 0) {
-          const { data: commentsRows } = await supabase
-            .from('post_comments')
-            .select('id, post_id')
-            .in('post_id', postIds);
-          const byPost: Record<string, number> = {};
-          (commentsRows || []).forEach((c: any) => {
-            byPost[c.post_id] = (byPost[c.post_id] || 0) + 1;
-          });
-          const idsWithComments = Object.keys(byPost);
-          postsWithComments = idsWithComments.length;
-          setPostsWithCommentsIds(idsWithComments);
-
           const { data: mediaRows } = await supabase
             .from('media_uploads')
             .select('id, post_id')
@@ -117,11 +156,17 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
               .select('id')
               .in('media_upload_id', mediaIds);
             photoTags = (tagRows || []).length;
-
             const postsWithMedia = new Set((mediaRows || []).map((m: any) => m.post_id));
-            photoComments = Object.keys(byPost).filter(pid => postsWithMedia.has(pid)).length;
+            // Aproximación: contamos posts con media que tienen al menos un comentario en general
+            const { data: commentsRows } = await supabase
+              .from('post_comments')
+              .select('post_id')
+              .in('post_id', Array.from(postsWithMedia));
+            const byPost: Record<string, number> = {};
+            (commentsRows || []).forEach((c: any) => { byPost[c.post_id] = (byPost[c.post_id] || 0) + 1; });
+            photoComments = Object.keys(byPost).length;
 
-            // Si sólo hay una foto (post con media) que tiene comentarios, guardamos su mediaId para navegar directo
+            // Si sólo hay una foto comentada, capturamos su mediaId para navegación directa
             const commentedPostIds = new Set(Object.keys(byPost));
             const mediaOnCommentedPosts = (mediaRows || []).filter((m: any) => commentedPostIds.has(m.post_id));
             const uniquePostsWithMediaAndComments = new Set(mediaOnCommentedPosts.map((m: any) => m.post_id));
@@ -145,6 +190,20 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
       }
     };
     loadNotifications();
+
+    // Suscripción para refrescar automáticamente cuando cambien las notificaciones
+    if (authUser?.id) {
+      const sub = supabase
+        .channel('status_comment_notifications')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload: any) => {
+          const row = payload?.new || payload?.old;
+          if (row && row.user_id === authUser.id && row.type === 'status_comment') {
+            loadNotifications();
+          }
+        })
+        .subscribe();
+      return () => { supabase.removeChannel(sub); };
+    }
   }, [authUser?.id]);
 
 
@@ -162,7 +221,7 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
               ) : userProfile?.avatar_url ? (
                 <img 
                   src={userProfile.avatar_url} 
-                  alt={displayName}
+                  alt={displayName || 'Perfil'}
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
@@ -175,22 +234,14 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
             </div>
             <div className="tuenti-profile-info">
               <div className="tuenti-profile-name">
-                {loading ? (
-                  <div className="tuenti-loading-skeleton tuenti-loading-name" />
-                ) : (
-                  displayName
-                )}
+                {displayName}
               </div>
               <div className="tuenti-profile-stats">
                 <div className="tuenti-profile-stats-icon">
                   <img src={`${import.meta.env.BASE_URL}bar-chart.svg`} alt="Visitas" />
                 </div>
                 <span className="tuenti-profile-stats-number">
-                  {loading ? (
-                    <div className="tuenti-loading-skeleton tuenti-loading-stats" />
-                  ) : (
-                    totalVisits
-                  )}
+                  0
                 </span>
                 <span>visitas a tu perfil</span>
               </div>
@@ -208,7 +259,22 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
                 <button
                   onClick={() => {
                     if (notifCounts.postsWithComments === 1 && postsWithCommentsIds[0]) {
-                      history.push(`/status/${postsWithCommentsIds[0]}`)
+                      const postId = postsWithCommentsIds[0];
+                      // Marcar como leídas las notificaciones de comentarios de ese estado
+                      (async () => {
+                        try {
+                          if (authUser?.id) {
+                            await supabase
+                              .from('notifications')
+                              .update({ is_read: true })
+                              .eq('user_id', authUser.id)
+                              .eq('type', 'status_comment')
+                              .eq('related_id', postId)
+                              .eq('is_read', false);
+                          }
+                        } catch (_) {}
+                        history.push(`/status/${postId}`);
+                      })();
                     } else {
                       onOpenNotification?.('comments')
                     }

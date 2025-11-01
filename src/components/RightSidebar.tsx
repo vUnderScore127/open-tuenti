@@ -6,6 +6,7 @@ import { MessageCircle, Send, Settings, Volume2, VolumeX, LogOut } from 'lucide-
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { useChatContext } from '@/contexts/ChatContext';
+import { dbg, group, count } from '@/lib/debug';
 import EmojiPicker, { EmojiStyle, Theme } from 'emoji-picker-react';
 import { getUnreadMessages, markMessagesAsRead, getTotalUnreadCount, generateConversationId } from '../lib/supabase';
 import '../styles/tuenti-right-sidebar.css';
@@ -55,12 +56,40 @@ const RightSidebar: React.FC = () => {
   
   // Estado para notificaciones de mensajes no leídos - AHORA USANDO BASE DE DATOS
   const [unreadMessages, setUnreadMessages] = useState<{[userId: string]: number}>({});
+  // Avisos de desconexión por chat abierto
+  const [disconnectNotices, setDisconnectNotices] = useState<{[userId: string]: string}>({});
+
+  // Polling de estado online (ref para el intervalo)
+  const onlinePollRef = useRef<number | null>(null);
+
+  // Refresco ligero del estado online de amigos
+  const refreshFriendsOnlineStatus = async () => {
+    if (!currentUser?.id) return;
+    try {
+      const ids = friends.map(f => f.id).filter(Boolean);
+      if (ids.length === 0) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, is_online')
+        .in('id', ids);
+      if (error) {
+        dbg('RightSidebar', 'poll:is_online:error', error);
+        return;
+      }
+      const map: {[key: string]: boolean} = {};
+      (data || []).forEach((r: any) => { map[r.id] = !!r.is_online; });
+      setFriends(prev => prev.map(f => (map[f.id] !== undefined ? { ...f, is_online: map[f.id] } : f)));
+    } catch (e) {
+      dbg('RightSidebar', 'poll:is_online:catch', e);
+    }
+  };
 
   // NUEVA FUNCIÓN: Cargar mensajes no leídos desde la base de datos
   const loadUnreadMessages = async () => {
     if (!currentUser?.id) return;
     
     try {
+      group.start('RightSidebar:loadUnreadMessages');
       const unreadData = await getUnreadMessages(currentUser.id);
       const unreadCounts: {[userId: string]: number} = {};
       
@@ -69,9 +98,11 @@ const RightSidebar: React.FC = () => {
       });
       
       setUnreadMessages(unreadCounts);
-      console.log('✅ Mensajes no leídos cargados desde BD:', unreadCounts);
+      dbg('RightSidebar', 'unreadMessages:loaded', unreadCounts);
+      group.end();
     } catch (error) {
-      console.error('❌ Error cargando mensajes no leídos:', error);
+      dbg('RightSidebar', 'unreadMessages:error', error);
+      group.end();
     }
   };
   
@@ -87,6 +118,7 @@ const RightSidebar: React.FC = () => {
 
   // FUNCIÓN MODIFICADA: Abrir chat y marcar mensajes como leídos
   const openChat = async (friend: Friend) => {
+    dbg('RightSidebar', 'openChat', friend.id);
     // Verificar si ya está abierto
     if (openChats.find(chat => chat.friend.id === friend.id)) {
       // Si ya está abierto, solo marcar como leído
@@ -109,7 +141,7 @@ const RightSidebar: React.FC = () => {
     .order('created_at', { ascending: true });
     
     if (error) {
-    console.error('Error loading messages:', error);
+    dbg('RightSidebar', 'openChat:loadMessages:error', error);
     return;
     }
     
@@ -128,11 +160,11 @@ const RightSidebar: React.FC = () => {
     ...prev,
     [friend.id]: 0
     }));
-    console.log('✅ Mensajes marcados como leídos para:', friend.first_name);
+    dbg('RightSidebar', 'markRead:ok', friend.id);
     } catch (error) {
-    console.error('❌ Error marcando mensajes como leídos:', error);
+    dbg('RightSidebar', 'markRead:error', error);
     }
-    };
+  };
 
   // En la función sendMessage
   const sendMessage = async (friendId: string) => {
@@ -231,6 +263,31 @@ const RightSidebar: React.FC = () => {
     }
   }, [currentUser?.id]);
 
+  // Polling periódico de estado online como fallback cuando la suscripción no refleja cambios
+  useEffect(() => {
+    if (!isOnline || !currentUser?.id) {
+      if (onlinePollRef.current) {
+        clearInterval(onlinePollRef.current);
+        onlinePollRef.current = null;
+      }
+      return;
+    }
+    if (onlinePollRef.current) {
+      clearInterval(onlinePollRef.current);
+    }
+    // Refresco inmediato y cada 10s
+    refreshFriendsOnlineStatus();
+    onlinePollRef.current = window.setInterval(() => {
+      refreshFriendsOnlineStatus();
+    }, 10000);
+    return () => {
+      if (onlinePollRef.current) {
+        clearInterval(onlinePollRef.current);
+        onlinePollRef.current = null;
+      }
+    };
+  }, [isOnline, currentUser?.id, friends.length]);
+
   // Función para manejar selección de emoji
   const onEmojiClick = (emojiData: any, friendId: string) => {
     setOpenChats(prev => prev.map(chat => 
@@ -244,10 +301,11 @@ const RightSidebar: React.FC = () => {
     }));
   };
 
-  // Suscripción en tiempo real para mensajes
+  // Suscripción en tiempo real para mensajes (evitar resuscripciones frecuentes)
   useEffect(() => {
     if (!currentUser?.id || !isOnline) return;
 
+    dbg('RightSidebar', 'subscribe:chat_messages');
     const subscription = supabase
       .channel('chat_messages')
       .on(
@@ -258,6 +316,7 @@ const RightSidebar: React.FC = () => {
           table: 'chat_messages'
         },
         async (payload) => {
+          dbg('RightSidebar', 'chat_messages:event', payload?.new);
           const newMessage = payload.new as Message;
           
           // Solo procesar mensajes relevantes para el usuario actual
@@ -308,14 +367,16 @@ const RightSidebar: React.FC = () => {
       .subscribe();
 
     return () => {
+      dbg('RightSidebar', 'unsubscribe:chat_messages');
       subscription.unsubscribe();
     };
-  }, [currentUser?.id, playNotificationSound, minimizedChats, openChats, isOnline]);
+  }, [currentUser?.id, isOnline]);
 
-  // Suscripción para estado online de amigos
+  // Suscripción para estado online de amigos (actualización en memoria, sin recargar lista completa)
   useEffect(() => {
     if (!currentUser?.id) return;
 
+    dbg('RightSidebar', 'subscribe:friends_online_status');
     const subscription = supabase
       .channel('friends_online_status')
       .on(
@@ -325,14 +386,43 @@ const RightSidebar: React.FC = () => {
           schema: 'public',
           table: 'profiles'
         },
-        () => {
-          // Recargar lista de amigos cuando cambie el estado online
-          loadFriends();
+        (payload: any) => {
+          const updated = payload?.new;
+          const updatedId = updated?.id;
+          if (!updatedId) return;
+          dbg('RightSidebar', 'profiles:update', { id: updatedId, is_online: updated?.is_online });
+          // Solo actualiza si el usuario actualizado está en tu lista de amigos
+          setFriends(prev => {
+            let changed = false;
+            const next = prev.map(f => {
+              if (f.id === updatedId) {
+                changed = true;
+                return { ...f, is_online: !!updated?.is_online };
+              }
+              return f;
+            });
+            // Si no encontramos al usuario en memoria, evitamos refrescos globales
+            return changed ? next : prev;
+          });
+          // Si el usuario actualizado está en un chat abierto y se desconecta, mostrar aviso
+          const isChatOpen = openChats.some(c => c.friend.id === updatedId);
+          if (isChatOpen && updated?.is_online === false) {
+            const timeStr = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            setDisconnectNotices(prev => ({ ...prev, [updatedId]: timeStr }));
+          }
+          // Si vuelve a conectarse, eliminar el aviso
+          if (isChatOpen && updated?.is_online === true) {
+            setDisconnectNotices(prev => {
+              const { [updatedId]: _, ...rest } = prev;
+              return rest;
+            });
+          }
         }
       )
       .subscribe();
 
     return () => {
+      dbg('RightSidebar', 'unsubscribe:friends_online_status');
       subscription.unsubscribe();
     };
   }, [currentUser?.id]);
@@ -340,6 +430,7 @@ const RightSidebar: React.FC = () => {
   // Auto scroll - REEMPLAZAR el useEffect existente (líneas 406-408)
   useEffect(() => {
     // Hacer scroll al final cuando se abren chats o cambian mensajes
+    dbg('RightSidebar', 'scroll:onOpenChatsChange', openChats.map(c => c.friend.id));
     openChats.forEach((chat) => {
       const messagesContainer = document.getElementById(`messages-${chat.friend.id}`);
       if (messagesContainer) {
@@ -348,7 +439,7 @@ const RightSidebar: React.FC = () => {
     });
   }, [openChats]);
 
-  // Scroll automático cuando se envían nuevos mensajes
+  // Scroll automático cuando se envían nuevos mensajes (dependencia estable)
   useEffect(() => {
     openChats.forEach((chat) => {
       const messagesContainer = document.getElementById(`messages-${chat.friend.id}`);
@@ -358,7 +449,7 @@ const RightSidebar: React.FC = () => {
         }, 100);
       }
     });
-  }, [openChats.map(chat => chat.messages.length)]);
+  }, [openChats]);
 
   useEffect(() => {
     if (isOnline && currentUser?.id) {
@@ -472,6 +563,15 @@ const RightSidebar: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Trazas de render (dentro del componente)
+  dbg('RightSidebar', 'render', {
+    userId: currentUser?.id,
+    isOnline,
+    friendsCount: friends.length,
+    openChatsIds: openChats.map((chat) => chat.friend.id),
+  });
+  count('RightSidebar:render');
 
   return (
     <div className={`right-sidebar ${isOnline ? '' : 'offline'}`}>
@@ -698,6 +798,12 @@ const RightSidebar: React.FC = () => {
               {/* Contenido del chat (solo visible si no está minimizado) */}
               {!isMinimized && (
                 <>
+                  {/* Aviso de desconexión */}
+                  {disconnectNotices[chat.friend.id] && (
+                    <div className="disconnect-notice" style={{ fontSize: '12px', color: '#666', padding: '4px 8px' }}>
+                      {chat.friend.first_name} se ha desconectado {disconnectNotices[chat.friend.id]}
+                    </div>
+                  )}
                   {/* Messages Area */}
                   <div 
                     id={`messages-${chat.friend.id}`}

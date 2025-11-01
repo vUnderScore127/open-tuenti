@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useRef, useEffect } from 'react';
+import { dbg, group } from '@/lib/debug';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 import { getSupabaseConfig } from '@/lib/config';
@@ -24,11 +25,14 @@ export const useChatContext = () => {
 export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const { user: currentUser } = useAuth();
   const [isOnline, setIsOnline] = useState<boolean>(true);
+  const lastUserIdRef = useRef<string | null>(null);
   const [soundEnabled, setSoundEnabledState] = useState(() => {
     const saved = localStorage.getItem('chatSoundEnabled');
     return saved ? JSON.parse(saved) : true;
   });
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  dbg('ChatContext', 'render', { userId: currentUser?.id, isOnline, soundEnabled });
 
   // Inicializar audio apuntando al archivo en public/audio
   useEffect(() => {
@@ -43,7 +47,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const initializeOnlineStatus = async () => {
     if (currentUser?.id) {
       try {
-        console.log('🟢 Inicializando estado online para:', currentUser.id);
+        dbg('ChatContext', 'initializeOnlineStatus:start', currentUser.id);
         const { error } = await supabase
           .from('profiles')
           .update({ is_online: true })
@@ -51,16 +55,32 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         
         if (error) throw error;
         setIsOnline(true);
+        dbg('ChatContext', 'initializeOnlineStatus:done', currentUser.id);
       } catch (error) {
-        console.error('Error al inicializar estado online:', error);
+        dbg('ChatContext', 'initializeOnlineStatus:error', error);
       }
     }
   };
 
   useEffect(() => {
-    if (!currentUser?.id) return;
-    
-    initializeOnlineStatus();
+    const prev = lastUserIdRef.current;
+    const next = currentUser?.id || null;
+    (async () => {
+      // Si el usuario anterior existe y cambió (o se desconectó), marcarlo offline
+      if (prev && (!next || prev !== next)) {
+        try {
+          await supabase
+            .from('profiles')
+            .update({ is_online: false })
+            .eq('id', prev);
+        } catch (_) {}
+        setIsOnline(false);
+      }
+      lastUserIdRef.current = next;
+      if (next) {
+        await initializeOnlineStatus();
+      }
+    })();
   }, [currentUser?.id]);
 
   // Persistir configuración de sonido
@@ -68,89 +88,88 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem('chatSoundEnabled', JSON.stringify(soundEnabled));
   }, [soundEnabled]);
 
-  // TODO: is_online field doesn't exist in database - temporarily disabled
-  // // Manejar desconexión SOLO al cerrar página
+  // Manejar desconexión SOLO al cerrar página
   useEffect(() => {
     if (!currentUser?.id) return;
-  
+
     const handleDisconnect = async () => {
-      console.log('🔌 Desconectando usuario:', currentUser.id);
-      await supabase
-        .from('profiles')
-        .update({ is_online: false })
-        .eq('id', currentUser.id);
+      try {
+        dbg('ChatContext', 'beforeunload:disconnect', currentUser.id);
+        await supabase
+          .from('profiles')
+          .update({ is_online: false })
+          .eq('id', currentUser.id);
+      } catch (e) {
+        // Ignorar errores durante navegación/cierre
+      }
     };
-    
+
     // Solo se desconecta al cerrar la página/pestaña
     window.addEventListener('beforeunload', handleDisconnect);
-    
+    window.addEventListener('pagehide', handleDisconnect);
+
     return () => {
       window.removeEventListener('beforeunload', handleDisconnect);
+      window.removeEventListener('pagehide', handleDisconnect);
     };
   }, [currentUser?.id]);
 
-  // Desconexión fiable usando eventos de visibilidad y pagehide con keepalive
+  // Actualizar inmediatamente el estado online al cambiar el estado de auth
   useEffect(() => {
-    if (!currentUser?.id) return;
-
-    const { url, anonKey } = getSupabaseConfig();
-
-    const sendOfflineKeepalive = async () => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       try {
-        const session = await supabase.auth.getSession();
-        const token = session.data.session?.access_token;
+        if (event === 'SIGNED_OUT') {
+          const prev = lastUserIdRef.current || session?.user?.id || null;
+          if (prev) {
+            try {
+              await supabase
+                .from('profiles')
+                .update({ is_online: false })
+                .eq('id', prev);
+            } catch (_) {}
+            setIsOnline(false);
+          }
+        } else if (event === 'SIGNED_IN') {
+          const id = session?.user?.id || null;
+          if (id) {
+            try {
+              await supabase
+                .from('profiles')
+                .update({ is_online: true })
+                .eq('id', id);
+            } catch (_) {}
+            setIsOnline(true);
+          }
+        }
+      } catch {}
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
-        const endpoint = `${url}/rest/v1/profiles?id=eq.${currentUser.id}`;
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-          'apikey': anonKey,
-        };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        await fetch(endpoint, {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify({ is_online: false }),
-          keepalive: true,
-        });
-      } catch (e) {
-        // Silently ignore; browser may terminate the request during navigation
-      }
-    };
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        sendOfflineKeepalive();
-      }
-    };
-
-    const onPageHide = () => {
-      sendOfflineKeepalive();
-    };
-
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    window.addEventListener('pagehide', onPageHide);
-
-    return () => {
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-      window.removeEventListener('pagehide', onPageHide);
-    };
-  }, [currentUser?.id]);
+  // Eliminado: no enviar cambios de estado al perder visibilidad para evitar "refrescos" al cambiar de pestaña
+  // La desconexión se gestiona con beforeunload y el toggle manual.
 
   const setOnlineStatus = async (status: boolean) => {
+    group.start('ChatContext:setOnlineStatus', { status, userId: currentUser?.id });
+    const prev = isOnline;
+    // Actualizar UI inmediatamente para reflejar el estado seleccionado
+    setIsOnline(status);
     if (currentUser?.id) {
       try {
-        console.log('🔄 Cambiando estado online a:', status);
         const { error } = await supabase
           .from('profiles')
           .update({ is_online: status })
           .eq('id', currentUser.id);
-        
         if (error) throw error;
-        setIsOnline(status);
+        group.end();
       } catch (error) {
-        console.error('Error al cambiar estado online:', error);
+        // Si falla la actualización en DB, mantener la UI coherente revirtiendo el estado
+        dbg('ChatContext', 'setOnlineStatus:error', error);
+        setIsOnline(prev);
+        group.end();
       }
+    } else {
+      group.end();
     }
   };
 

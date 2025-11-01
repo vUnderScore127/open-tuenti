@@ -22,7 +22,7 @@
 
 .tuenti-upload-header {
   /* Aplicar el mismo estilo con ruido del header */
-  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5785B6 0%, #3C6EA3 100%);
+  background-image: url("/open-tuenti/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5686B5 0%, #4575A6 100%);
   color: #fff;
   display: flex;
   align-items: center;

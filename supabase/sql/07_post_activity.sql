@@ -63,12 +63,33 @@ create table if not exists public.post_comments (
 
 alter table public.post_comments enable row level security;
 
+-- Extend comments with edit metadata
+alter table public.post_comments
+  add column if not exists updated_at timestamptz,
+  add column if not exists is_edited boolean not null default false,
+  add column if not exists edit_history jsonb;
+
 -- Allow users to insert comments as themselves
 drop policy if exists post_comments_insert_self on public.post_comments;
 create policy post_comments_insert_self
   on public.post_comments for insert
   to authenticated
   with check (user_id = auth.uid());
+
+-- Allow authors to edit their own comments
+drop policy if exists post_comments_update_self on public.post_comments;
+create policy post_comments_update_self
+  on public.post_comments for update
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+-- Allow authors to delete their own comments
+drop policy if exists post_comments_delete_self on public.post_comments;
+create policy post_comments_delete_self
+  on public.post_comments for delete
+  to authenticated
+  using (user_id = auth.uid());
 
 -- Allow selecting comments if you are the post author or accepted friend of the author
 drop policy if exists post_comments_select_friends on public.post_comments;

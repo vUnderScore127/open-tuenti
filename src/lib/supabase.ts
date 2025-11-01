@@ -11,7 +11,7 @@ export interface UserProfile {
   first_name: string
   last_name: string
   avatar_url: string
-  // username se elimina del esquema; si existiera, no lo usamos
+  username?: string
   bio: string | null
   location: string | null
   website: string | null
@@ -35,7 +35,6 @@ export interface UserVisit {
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   console.log('🔍 Getting user profile for:', userId)
-  
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -44,20 +43,36 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       .single()
 
     if (error) {
-      console.error('Error getting user profile:', error)
+      console.error('❌ Error getting user profile:', error)
       return null
     }
-
     if (!data) {
-      console.log('No profile data found')
+      console.warn('⚠️ No profile data found for', userId)
       return null
     }
-
     console.log('🔄 Raw profile data:', data)
     return data as UserProfile
-
   } catch (error) {
-    console.error('Error getting user profile:', error)
+    console.error('❌ Exception getting user profile:', error)
+    return null
+  }
+}
+
+// Perfil básico para cargas rápidas en UI (id, first_name, last_name, avatar_url)
+export async function getBasicProfile(userId: string): Promise<Pick<UserProfile, 'id' | 'first_name' | 'last_name' | 'avatar_url'> | null> {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, avatar_url')
+      .eq('id', userId)
+      .single()
+    if (error) {
+      console.error('❌ Error getting basic profile:', error)
+      return null
+    }
+    return (data as any) || null
+  } catch (error) {
+    console.error('❌ Exception getting basic profile:', error)
     return null
   }
 }
@@ -719,6 +734,14 @@ export async function createProfileCommentNotification(
       .single()
     
     if (fromUser) {
+      // Asegurar username del destinatario para usar profile-id=
+      let toUsername: string = ''
+      try {
+        const { data: uname, error: unameErr } = await supabase.rpc('get_or_create_username', { p_user_id: toUserId })
+        if (!unameErr && typeof uname === 'string') {
+          toUsername = uname
+        }
+      } catch (_) {}
       await supabase
         .from('notifications')
         .insert({
@@ -729,7 +752,7 @@ export async function createProfileCommentNotification(
           from_user_id: fromUserId,
           related_id: commentId,
           related_type: 'comment',
-          action_url: `/profile/${toUserId}#comments`,
+          action_url: toUsername ? `/profile-id=${toUsername}#comments` : undefined,
           is_read: false
         })
     }

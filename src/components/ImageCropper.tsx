@@ -216,7 +216,7 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
               padding: '7px 28px',
               borderRadius: 4,
               border: '2px solid #396A9D',
-              backgroundImage: `url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5686B5 0%, #4575A6 100%)`,
+              backgroundImage: `url("${import.meta.env.BASE_URL}noise.KmQE111qYh.png"), linear-gradient(to bottom, #5686B5 0%, #4575A6 100%)`,
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -1px 0 rgba(0,0,0,0.2)',
               cursor: completedCrop ? 'pointer' : 'not-allowed',
               opacity: completedCrop ? 1 : 0.6,

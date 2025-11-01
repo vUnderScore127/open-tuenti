@@ -63,24 +63,51 @@ const People: React.FC = () => {
     return list;
   }, [profiles, query, currentUserId, scope, gender, ageMin, ageMax, friendIds, fofIds, selCities, selProvinces, selCountries]);
 
+  // Carga inicial de perfiles: inmediata y no bloqueada por el ID del usuario
   useEffect(() => {
-    const load = async () => {
-      if (!currentUserId) return;
+    // Mostrar al instante el último caché si existe
+    try {
+      const cached = localStorage.getItem('tuentis_people_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) setProfiles(parsed);
+      }
+    } catch {}
+
+    const loadProfiles = async () => {
       setLoading(true);
       try {
         const { data: profs } = await supabase
           .from('profiles')
-          .select('id, first_name, last_name, avatar_url, is_online, email, gender, birth_year, city, province, country')
+          .select('id, first_name, last_name, avatar_url, is_online, email, gender, birth_year, city, province, country, username')
           .limit(50);
-        // Aleatorizar el listado inicial
         const baseProfiles = ((profs as any) || []);
+        // Aleatorizar el listado inicial para variedad
         const shuffled = [...baseProfiles];
         for (let i = shuffled.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
         setProfiles(shuffled);
+        // Guardar caché para próximas cargas instantáneas
+        try { localStorage.setItem('tuentis_people_cache', JSON.stringify(shuffled)); } catch {}
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProfiles();
+  }, []);
 
+  // Carga de relaciones (amigos y amigos de amigos) cuando haya usuario
+  useEffect(() => {
+    const loadRels = async () => {
+      if (!currentUserId) {
+        setRels([]);
+        setFriendIds(new Set());
+        setFofIds(new Set());
+        return;
+      }
+      try {
         const { data: fr } = await supabase
           .from('friendships')
           .select('user_id, friend_id, status')
@@ -109,11 +136,14 @@ const People: React.FC = () => {
         } else {
           setFofIds(new Set());
         }
-      } finally {
-        setLoading(false);
+      } catch (e) {
+        console.warn('⚠️ People: error cargando relaciones', e);
+        setRels([]);
+        setFriendIds(new Set());
+        setFofIds(new Set());
       }
     };
-    load();
+    loadRels();
   }, [currentUserId]);
 
   const statusFor = (otherId: string): { status: 'none'|'pending'|'accepted'|'rejected'|'blocked'; direction?: 'out'|'in'|'none' } => {
@@ -242,19 +272,50 @@ const People: React.FC = () => {
                   <div style={{ color: '#b3d1f0' }}>{filtered.length} resultados</div>
                 </div>
                 <div style={{ color: '#f0f8ff', marginBottom: 12 }}>Explora usuarios y gestiona tu relación.</div>
-                {loading && <span style={{ color: '#b3d1f0' }}>Cargando…</span>}
+                {/* Skeletons para carga rápida sin pantalla de espera */}
+                {profiles.length === 0 && loading && (
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <li key={`sk-${i}`} style={{ display: 'grid', gridTemplateColumns: '64px 1fr auto', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #3F6DA2' }}>
+                        <div style={{ width: 64, height: 64, borderRadius: 4, background: '#2B4B73' }} />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          <div style={{ width: '40%', height: 14, background: '#2B4B73' }} />
+                          <div style={{ width: '60%', height: 12, background: '#2B4B73' }} />
+                        </div>
+                        <div style={{ width: 120, height: 28, background: '#2B4B73' }} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
                 <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
                   {filtered.map(u => {
                     const st = statusFor(u.id);
-                    const name = `${(u.first_name||'')} ${(u.last_name||'')}`.trim() || u.email || u.id;
+                    const fullName = `${(u.first_name||'')} ${(u.last_name||'')}`.trim();
+                    const emailName = (u.email || '').includes('@') ? (u.email as string).split('@')[0] : (u.email || '');
+                    const name = fullName || emailName || u.id;
                     const cityStr = [u.city, u.province, u.country].filter(Boolean).join(' · ');
+                    const goToProfile = () => {
+                      try {
+                        const path = `profile/${u.id}`;
+                        window.location.assign(`${import.meta.env.BASE_URL}${path}`);
+                      } catch (e) {
+                        console.error('Error abriendo perfil:', e);
+                        alert('No se pudo abrir el perfil. Inténtalo más tarde.');
+                      }
+                    };
                     return (
                       <li key={u.id} style={{ display: 'grid', gridTemplateColumns: '64px 1fr auto', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #3F6DA2' }}>
                         <div style={{ width: 64, height: 64, borderRadius: 4, overflow: 'hidden', background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           {u.avatar_url ? <img src={u.avatar_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>👤</span>}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                          <div style={{ color: '#5785B6', fontWeight: 600 }}>{name}</div>
+                          <button
+                            onClick={goToProfile}
+                            title="Ver perfil"
+                            style={{ color: '#5785B6', fontWeight: 600, background: 'none', border: 'none', padding: 0, textAlign: 'left', cursor: 'pointer' }}
+                          >
+                            {name}
+                          </button>
                           <div style={{ color: '#b3d1f0', fontSize: 12 }}>{cityStr}</div>
                           <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
                 {/* Opciones principales estilo Tuenti: Mensaje privado / Eliminar amigo */}

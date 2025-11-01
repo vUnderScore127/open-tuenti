@@ -12,11 +12,13 @@ export default function NotificationModal({
   title,
   items,
   onClose,
+  onItemClick,
 }: {
   open: boolean;
   title: string;
   items: NotificationItem[];
   onClose: () => void;
+  onItemClick?: (id: string) => void;
 }) {
   if (!open) return null;
   return (
@@ -32,7 +34,11 @@ export default function NotificationModal({
           ) : (
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
               {items.map((it) => (
-                <li key={it.id} style={{ border: '1px solid #eee', borderRadius: 4, padding: '8px 10px', background: '#fafafa' }}>
+                <li
+                  key={it.id}
+                  style={{ border: '1px solid #eee', borderRadius: 4, padding: '8px 10px', background: '#fafafa', cursor: onItemClick ? 'pointer' : 'default' }}
+                  onClick={() => onItemClick?.(it.id)}
+                >
                   <div style={{ fontSize: 13, color: '#333', fontWeight: 600 }}>{it.title}</div>
                   {it.description && (
                     <div style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{it.description}</div>

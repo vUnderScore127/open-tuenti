@@ -6,6 +6,7 @@ import { useAuth } from '../lib/auth';
 import Header from '../components/Header';
 import { ImageCropper } from '../components/ImageCropper';
 import { supabase, createInvitation, updateInvitationStatus, getProfilesByIds, updateUserProfile } from '../lib/supabase';
+import { BUCKET_NAME } from '../lib/storageService';
 import type { Invitation } from '../lib/supabase';
 
 // Función auxiliar para calcular la edad - MOVER AQUÍ
@@ -251,6 +252,8 @@ const handleSaveProfile = async () => {
   if (!user) return;
   
   setIsLoading(true);
+  // Fallback de seguridad: evitar quedarse cargando indefinidamente
+  const stopLoadingTimer = setTimeout(() => setIsLoading(false), 15000);
   try {
     // Convertir strings a números para los campos de fecha
     const updateData: any = {
@@ -269,7 +272,43 @@ const handleSaveProfile = async () => {
     // Usar función centralizada que normaliza género y calcula edad
     let error: any = null
     try {
-      await updateUserProfile(user.id, updateData)
+      // Sólo enviar campos relevantes del perfil para evitar conflictos innecesarios
+      const {
+        first_name,
+        last_name,
+        email,
+        gender,
+        birth_day,
+        birth_month,
+        birth_year,
+        age,
+        country,
+        city,
+        province,
+        marital_status,
+        website,
+        phone,
+        origin_country,
+        looking_for,
+      } = updateData;
+      await updateUserProfile(user.id, {
+        first_name,
+        last_name,
+        email,
+        gender,
+        birth_day,
+        birth_month,
+        birth_year,
+        age,
+        country,
+        city,
+        province,
+        marital_status,
+        website,
+        phone,
+        origin_country,
+        looking_for,
+      })
     } catch (e) {
       error = e
     }
@@ -286,6 +325,7 @@ const handleSaveProfile = async () => {
     setToastMessage(`Error al actualizar el perfil: ${(error as Error).message || 'Error desconocido'}`);
     setShowToast(true);
   } finally {
+    clearTimeout(stopLoadingTimer);
     setIsLoading(false);
   }
 };
@@ -751,7 +791,7 @@ const renderContent = () => {
       const filePath = `${user?.id}/avatar/${fileName}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('tuenties-archive')
+        .from(BUCKET_NAME)
         .upload(filePath, croppedFile, {
           upsert: true
         });
@@ -764,7 +804,7 @@ const renderContent = () => {
       
       // ✅ CAMBIO: Usar createSignedUrl en lugar de getPublicUrl
       const { data: signedUrlData, error: urlError } = await supabase.storage
-        .from('tuenties-archive')
+        .from(BUCKET_NAME)
         .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 año de duración
       
       if (urlError || !signedUrlData?.signedUrl) {
@@ -984,7 +1024,7 @@ const renderContent = () => {
 
         .change-photo-btn {
           background-image: 
-            url("/noise.KmQE111qYh.png"),
+            url("${import.meta.env.BASE_URL}noise.KmQE111qYh.png"),
             linear-gradient(to bottom, #F9F9F9 0%, #DCDCDD 100%);
           border: 1px solid rgba(0, 0, 0, 0.12);
           box-shadow: 
@@ -1005,7 +1045,7 @@ const renderContent = () => {
         
         .change-photo-btn:hover {
           background-image: 
-            url("/noise.KmQE111qYh.png"),
+            url("${import.meta.env.BASE_URL}noise.KmQE111qYh.png"),
             linear-gradient(to bottom,rgb(255, 255, 255) 0%, #C8C8C9 100%);
         }
         

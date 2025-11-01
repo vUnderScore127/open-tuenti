@@ -107,7 +107,7 @@ const Photo: React.FC = () => {
               </div>
               <div className="tuenti-post-content" style={{ width: '100%' }}>
                 <div className="tuenti-post-meta">
-                  <span className="tuenti-post-author">{`${post.profiles?.first_name || ''} ${post.profiles?.last_name || ''}`.trim() || 'Usuario'}</span>
+                  <span className="tuenti-post-author">{`${post.profiles?.first_name || ''} ${post.profiles?.last_name || ''}`.trim() || post.user_id}</span>
                 </div>
                 <p className="tuenti-post-time">{new Date(post.created_at).toLocaleString()}</p>
 

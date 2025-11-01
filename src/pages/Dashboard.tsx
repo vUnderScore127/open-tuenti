@@ -24,13 +24,14 @@ interface Post {
     avatar: any;
   };
   time: string;
+  authorId?: string;
 }
 
 const Dashboard: React.FC = () => {
   const navigate = useHistory();
   const { user, loading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [feedFilter, setFeedFilter] = useState<'all' | 'friends'>('friends');
+  const [feedFilter, setFeedFilter] = useState<'all' | 'friends'>('all');
   const [postsLoading, setPostsLoading] = useState(true);
   const [lastStatusText, setLastStatusText] = useState<string>('');
   const [lastStatusTime, setLastStatusTime] = useState<string>('');
@@ -55,136 +56,130 @@ const Dashboard: React.FC = () => {
         }
         console.debug('[Feed] Friendships fetched:', { userId, count: (friendships||[]).length, computedFriendIds, error: fsErr?.message });
       }
-      // Mantén en estado los IDs de amigos para suscripciones en tiempo real
-      if (computedFriendIds.length > 0) {
-        setFriendIds(computedFriendIds);
-      } else {
-        setFriendIds([]);
-      }
+      // Mantener IDs de amigos para Realtime
+      setFriendIds(computedFriendIds.length > 0 ? computedFriendIds : []);
 
-      let query = supabase
+      // 1) Posts básicos sin joins implícitos
+      let postsQuery = supabase
         .from('posts')
-        .select(`
-          id,
-          content,
-          created_at,
-          user_id,
-          profiles(first_name, last_name, avatar_url)
-        `)
+        .select('id, content, created_at, user_id')
         .order('created_at', { ascending: false })
         .limit(10);
-      if (filterType === 'friends') {
-        if (computedFriendIds.length === 0) {
-          console.debug('[Feed] No friendIds, showing empty friends feed');
-          setPosts([]);
-          return;
-        }
-        console.debug('[Feed] Applying friends filter', { computedFriendIds });
-        query = query.in('user_id', computedFriendIds);
+      if (filterType === 'friends' && computedFriendIds.length > 0) {
+        postsQuery = postsQuery.in('user_id', computedFriendIds);
       }
-      const { data: postsData, error: postsError } = await query;
+      const { data: postsData, error: postsError } = await postsQuery;
       if (postsError) {
         console.error('[Feed] Error fetching posts:', postsError);
-        if ((postsError as any)?.message?.toLowerCase().includes('permission')) {
-          console.error('[Feed] Permission error likely due to RLS. Ensure posts policies allow viewing friends posts.');
+        return;
+      }
+      const rows = (postsData || []) as any[];
+      const postIds = rows.map(r => r.id);
+      const authorIds = Array.from(new Set(rows.map(r => r.user_id).filter(Boolean)));
+
+      // 2) Perfiles de autores en una sola consulta
+      let profileMap: Record<string, { first_name?: string; last_name?: string; avatar_url?: string; email?: string }> = {};
+      if (authorIds.length > 0) {
+        const { data: profilesData, error: profErr } = await supabase
+          .from('profiles')
+          .select('id, first_name, last_name, avatar_url, email')
+          .in('id', authorIds);
+        if (!profErr) {
+          (profilesData as any || []).forEach((p: any) => {
+            profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url, email: p.email };
+          });
+        } else {
+          console.warn('[Feed] Profiles fetch error', profErr);
         }
       }
-      if (postsError) return;
-      const postIds = (postsData || []).map(p => p.id);
 
-      // Cargar conteo de comentarios por post
+      // 3) Media por post en una sola consulta
+      let mediaByPost: Record<string, { thumbnail_url?: string | null; file_url?: string | null; file_type?: string | null } | null> = {};
+      let mediaRowsAll: any[] = [];
+      if (postIds.length > 0) {
+        const { data: mediaRows, error: mediaErr } = await supabase
+          .from('media_uploads')
+          .select('id, post_id, thumbnail_url, file_url, file_type')
+          .in('post_id', postIds);
+        if (!mediaErr) {
+          mediaRowsAll = mediaRows as any[];
+          // Elegir el primer media por post
+          const firstByPost: Record<string, boolean> = {};
+          (mediaRows as any || []).forEach((m: any) => {
+            if (!firstByPost[m.post_id]) {
+              mediaByPost[m.post_id] = { thumbnail_url: m.thumbnail_url, file_url: m.file_url, file_type: m.file_type };
+              firstByPost[m.post_id] = true;
+            }
+          });
+        } else {
+          console.warn('[Feed] Media fetch error', mediaErr);
+        }
+      }
+
+      // 4) Conteo de comentarios por post
       let commentsCountByPost: Record<string, number> = {};
       if (postIds.length > 0) {
         const { data: commentsRows, error: commentsErr } = await supabase
           .from('post_comments')
-          .select('id, post_id')
+          .select('post_id')
           .in('post_id', postIds);
-        if (commentsErr) {
-          console.error('[Feed] Error fetching comments count:', commentsErr);
-        } else {
-          (commentsRows || []).forEach((r: any) => {
+        if (!commentsErr) {
+          (commentsRows as any || []).forEach((r: any) => {
             const pid = r.post_id;
             commentsCountByPost[pid] = (commentsCountByPost[pid] || 0) + 1;
           });
-        }
-      }
-
-      // Cargar IDs de media por post
-      let mediaIdsByPost: Record<string, string[]> = {};
-      let allMediaIds: string[] = [];
-      if (postIds.length > 0) {
-        const { data: mediaRows, error: mediaRowsErr } = await supabase
-          .from('media_uploads')
-          .select('id, post_id')
-          .in('post_id', postIds);
-        if (mediaRowsErr) {
-          console.error('[Feed] Error fetching media ids:', mediaRowsErr);
         } else {
-          (mediaRows || []).forEach((m: any) => {
-            const pid = m.post_id;
-            const mid = m.id;
-            if (!mediaIdsByPost[pid]) mediaIdsByPost[pid] = [];
-            mediaIdsByPost[pid].push(mid);
-            allMediaIds.push(mid);
-          });
+          console.warn('[Feed] Comments count error', commentsErr);
         }
       }
 
-      // Cargar conteo de fotos etiquetadas por post (tags en media)
+      // 5) Conteo de etiquetas por post usando media_ids
       let tagsCountByPost: Record<string, number> = {};
-      if (allMediaIds.length > 0) {
+      const mediaIds = mediaRowsAll.map(m => m.id);
+      if (mediaIds.length > 0) {
         const { data: tagRows, error: tagsErr } = await supabase
           .from('photo_tags')
           .select('id, media_upload_id')
-          .in('media_upload_id', allMediaIds);
-        if (tagsErr) {
-          console.error('[Feed] Error fetching photo tags count:', tagsErr);
-        } else {
-          (tagRows || []).forEach((t: any) => {
+          .in('media_upload_id', mediaIds);
+        if (!tagsErr) {
+          (tagRows as any || []).forEach((t: any) => {
             const mid = t.media_upload_id;
-            // Encontrar post asociado a este media id
-            const postIdForMedia = Object.keys(mediaIdsByPost).find(pid => (mediaIdsByPost[pid] || []).includes(mid));
+            const postIdForMedia = mediaRowsAll.find((mr: any) => mr.id === mid)?.post_id;
             if (postIdForMedia) {
               tagsCountByPost[postIdForMedia] = (tagsCountByPost[postIdForMedia] || 0) + 1;
             }
           });
+        } else {
+          console.warn('[Feed] Photo tags count error', tagsErr);
         }
       }
-      const postsWithImages = await Promise.all(
-        (postsData || []).map(async (post) => {
-          const { data: mediaData, error: mediaError } = await supabase
-            .from('media_uploads')
-            .select(`
-              thumbnail_url, 
-              file_url, 
-              file_type,
-              user_id
-            `)
-            .eq('post_id', post.id)
-            .limit(1)
-            .single();
-          const hasMedia = mediaData?.thumbnail_url;
-          const isVideo = mediaData?.file_type?.startsWith('video/');
-          const name = `${(post.profiles as any)?.first_name || ''} ${(post.profiles as any)?.last_name || ''}`.trim()
-          return {
-            id: post.id,
-            user: name || 'Usuario',
-            content: post.content,
-            image: hasMedia || undefined,
-            videoUrl: isVideo ? mediaData?.file_url : undefined,
-            isVideo: isVideo || false,
-            mediaUser: {
-              name: `${(post.profiles as any)?.first_name || ''} ${(post.profiles as any)?.last_name || ''}`.trim() || 'Usuario',
-              avatar: (post.profiles as any)?.avatar_url || ''
-            },
-            time: getTimeAgo(new Date(post.created_at)),
-            commentsCount: commentsCountByPost[post.id] || 0,
-            taggedPhotosCount: tagsCountByPost[post.id] || 0
-          };
-        })
-      );
-      console.debug('[Feed] Posts loaded:', { filterType, count: postsWithImages.length });
-      setPosts(postsWithImages);
+
+      // 6) Construcción final
+      const postsWithData = rows.map((post) => {
+        const prof = profileMap[post.user_id] || {};
+        const fullName = `${prof.first_name || ''} ${prof.last_name || ''}`.trim();
+        const displayName = fullName || (prof.email ? String(prof.email).split('@')[0] : post.user_id);
+        const media = mediaByPost[post.id] || null;
+        const isVideo = !!(media?.file_type && String(media.file_type).startsWith('video/'));
+        return {
+          id: post.id,
+          user: displayName,
+          content: post.content,
+          image: media?.thumbnail_url || undefined,
+          videoUrl: isVideo ? media?.file_url || undefined : undefined,
+          isVideo: isVideo,
+          mediaUser: {
+            name: displayName,
+            avatar: prof.avatar_url || ''
+          },
+          time: getTimeAgo(new Date(post.created_at)),
+          commentsCount: commentsCountByPost[post.id] || 0,
+          taggedPhotosCount: tagsCountByPost[post.id] || 0,
+          authorId: post.user_id
+        };
+      });
+      console.debug('[Feed] Posts loaded:', { filterType, count: postsWithData.length });
+      setPosts(postsWithData);
     } catch (error) {
       console.error('[Feed] Unexpected error loading posts:', error);
     } finally {
@@ -226,16 +221,21 @@ const Dashboard: React.FC = () => {
       return;
     }
     if (user?.id) {
-      setPostsLoading(true);
-      loadRealPosts(user.id, feedFilter);
-      loadLastStatus(user.id);
+      // Evitar activar el loader si ya está cargando
+      if (!postsLoading) {
+        setPostsLoading(true);
+        loadRealPosts(user.id, feedFilter);
+        loadLastStatus(user.id);
+      }
     }
-  }, [user, loading, feedFilter, navigate]);
+  }, [user, loading, feedFilter]);
 
   // Escuchar eventos globales para refrescar el feed tras subir fotos
   useEffect(() => {
     const handler = () => {
       if (user?.id) {
+        // No disparar si ya estamos cargando
+        if (postsLoading) return;
         setPostsLoading(true);
         loadRealPosts(user.id, feedFilter);
       }
@@ -244,7 +244,7 @@ const Dashboard: React.FC = () => {
     return () => {
       document.removeEventListener('posts:refresh', handler);
     };
-  }, [user?.id, feedFilter]);
+  }, [user?.id, feedFilter, postsLoading]);
 
   // Suscripción en tiempo real: refresca el feed de amigos cuando publiquen
   useEffect(() => {
@@ -258,12 +258,16 @@ const Dashboard: React.FC = () => {
           if (feedFilter === 'friends') {
             // Refresca si el nuevo post es de tus amigos
             if (friendIds.includes(newUserId)) {
-              setPostsLoading(true);
-              loadRealPosts(user.id, 'friends');
+              if (!postsLoading) {
+                setPostsLoading(true);
+                loadRealPosts(user.id, 'friends');
+              }
             }
           } else if (feedFilter === 'all') {
-            setPostsLoading(true);
-            loadRealPosts(user.id, 'all');
+            if (!postsLoading) {
+              setPostsLoading(true);
+              loadRealPosts(user.id, 'all');
+            }
           }
         } catch {}
       });
@@ -273,7 +277,7 @@ const Dashboard: React.FC = () => {
     return () => {
       channel.unsubscribe();
     };
-  }, [user?.id, friendIds, feedFilter]);
+  }, [user?.id, friendIds, feedFilter, postsLoading]);
 
   // Elimina completamente estos bloques:
   // const profileSidebarRef = useRef<HTMLDivElement>(null);
@@ -281,18 +285,8 @@ const Dashboard: React.FC = () => {
   // useLayoutEffect(() => { ... });
   // useLayoutEffect(() => { ... });
 
-  if (!user || loading || postsLoading) {
-    return (
-      <IonPage>
-        <div className="min-h-screen bg-white flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-blue-600 mb-2">Tuentis</h1>
-            <p className="text-gray-600">Cargando...</p>
-          </div>
-        </div>
-      </IonPage>
-    );
-  }
+  // Eliminamos el overlay de carga para permitir que la UI se muestre
+  // mientras las peticiones se realizan en background.
 
   const reloadPosts = () => {
     if (user?.id) {
@@ -311,6 +305,7 @@ const Dashboard: React.FC = () => {
   };
 
   const handleStatusUpdate = async (statusText: string) => {
+    if (!user?.id) return;
     try {
       const { error } = await supabase
         .from('posts')
@@ -344,7 +339,7 @@ const Dashboard: React.FC = () => {
     }
     const items = ((commentsData || []) as any).map((c: any) => ({
       id: c.id,
-      title: `${(profileMap[c.user_id]?.first_name || '')} ${(profileMap[c.user_id]?.last_name || '')}`.trim() || 'Usuario',
+      title: `${(profileMap[c.user_id]?.first_name || '')} ${(profileMap[c.user_id]?.last_name || '')}`.trim() || c.user_id,
       description: c.content,
       timestamp: getTimeAgo(new Date(c.created_at)),
     }));
@@ -374,7 +369,7 @@ const Dashboard: React.FC = () => {
     if (error) return;
     const items = (data || []).map((t: any) => ({
       id: t.id,
-      title: `Etiqueta: ${(t.profiles?.first_name || '')} ${(t.profiles?.last_name || '')}`.trim() || 'Usuario',
+      title: `Etiqueta: ${(t.profiles?.first_name || '')} ${(t.profiles?.last_name || '')}`.trim() || t.tagged_user_id,
       description: 'Foto etiquetada en tu estado',
       timestamp: getTimeAgo(new Date(t.created_at)),
     }));
@@ -396,42 +391,30 @@ const Dashboard: React.FC = () => {
 
   const openAllCommentsModal = async () => {
     if (!user?.id) return;
-    const { data: postRows } = await supabase
-      .from('posts')
-      .select('id')
-      .eq('user_id', user.id);
-    const postIds = (postRows || []).map((p: any) => p.id);
-    if (postIds.length === 0) {
-      setModalTitle('Comentarios');
-      setModalItems([]);
-      setModalOpen(true);
-      return;
-    }
-    const { data: commentsData, error } = await supabase
-      .from('post_comments')
-      .select('id, content, created_at, user_id, post_id')
-      .in('post_id', postIds)
-      .order('created_at', { ascending: false })
-      .limit(100);
+    // Traer notificaciones no leídas de comentarios de estado y agrupar por estado
+    const { data: notifRows, error } = await supabase
+      .from('notifications')
+      .select('id, related_id, created_at')
+      .eq('user_id', user.id)
+      .eq('type', 'status_comment')
+      .eq('is_read', false)
+      .order('created_at', { ascending: false });
     if (error) return;
-    const userIds = Array.from(new Set(((commentsData || []) as any).map((c: any) => c.user_id).filter(Boolean)));
-    let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
-    if (userIds.length > 0) {
-      const { data: profilesData } = await supabase
-        .from('profiles')
-        .select('id, first_name, last_name')
-        .in('id', userIds);
-      (profilesData as any || []).forEach((p: any) => {
-        profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name };
-      });
-    }
-    const items = ((commentsData || []) as any).map((c: any) => ({
-      id: c.id,
-      title: `${(profileMap[c.user_id]?.first_name || '')} ${(profileMap[c.user_id]?.last_name || '')}`.trim() || 'Usuario',
-      description: c.content,
-      timestamp: getTimeAgo(new Date(c.created_at)),
+    const byPost: Record<string, { latestAt: string; count: number }> = {};
+    (notifRows || []).forEach((n: any) => {
+      const pid = n.related_id;
+      if (!pid) return;
+      const current = byPost[pid];
+      if (!current) byPost[pid] = { latestAt: n.created_at, count: 1 };
+      else byPost[pid] = { latestAt: (new Date(n.created_at) > new Date(current.latestAt) ? n.created_at : current.latestAt), count: current.count + 1 };
+    });
+    const items = Object.entries(byPost).map(([postId, v]) => ({
+      id: postId,
+      title: `Comentarios en tu estado (${v.count})`,
+      description: 'Haz clic para ver el estado',
+      timestamp: getTimeAgo(new Date(v.latestAt)),
     }));
-    setModalTitle('Comentarios en tus estados');
+    setModalTitle('Estados con comentarios');
     setModalItems(items);
     setModalOpen(true);
   };
@@ -463,7 +446,7 @@ const Dashboard: React.FC = () => {
     if (error) return;
     const items = (data || []).map((t: any) => ({
       id: t.id,
-      title: `Etiqueta: ${(t.profiles?.first_name || '')} ${(t.profiles?.last_name || '')}`.trim() || 'Usuario',
+      title: `Etiqueta: ${(t.profiles?.first_name || '')} ${(t.profiles?.last_name || '')}`.trim() || t.tagged_user_id,
       description: 'Foto etiquetada en tus estados',
       timestamp: getTimeAgo(new Date(t.created_at)),
     }));
@@ -485,7 +468,7 @@ const Dashboard: React.FC = () => {
 
             {/* Columna central */}
             <div className="tuenti-main-content">
-              <MainContent posts={posts} onStatusSave={handleStatusUpdate} lastStatusText={lastStatusText} lastStatusTime={lastStatusTime} onOpenNotification={openNotification} />
+      <MainContent posts={posts} onStatusSave={handleStatusUpdate} lastStatusText={lastStatusText} lastStatusTime={lastStatusTime} />
             </div>
 
             {/* Columna derecha */}
@@ -495,7 +478,27 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
       {/* Modal de notificaciones */}
-      <NotificationModal open={modalOpen} title={modalTitle} items={modalItems} onClose={() => setModalOpen(false)} />
+      <NotificationModal
+        open={modalOpen}
+        title={modalTitle}
+        items={modalItems}
+        onClose={() => setModalOpen(false)}
+        onItemClick={async (postId: string) => {
+          try {
+            if (user?.id) {
+              await supabase
+                .from('notifications')
+                .update({ is_read: true })
+                .eq('user_id', user.id)
+                .eq('type', 'status_comment')
+                .eq('related_id', postId)
+                .eq('is_read', false);
+            }
+          } catch (_) {}
+          setModalOpen(false);
+          navigate.push(`/status/${postId}`);
+        }}
+      />
       {/* Footer eliminado */}
       </IonContent>
     </IonPage>

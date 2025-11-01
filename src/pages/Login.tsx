@@ -28,6 +28,8 @@ export default function Login() {
   
   const { user, loading, signIn } = useAuth();
   const history = useHistory();
+  // Guardar el id de intervalo para limpiarlo
+  const [progressTimerActive, setProgressTimerActive] = useState(false);
 
   // Modificar el useEffect para manejar sesiones existentes
   useEffect(() => {
@@ -35,20 +37,29 @@ export default function Login() {
       // Si hay usuario, mostrar pantalla de carga
       setUserEmail(user.email || '');
       setShowLoadingScreen(true);
-      
-      // Simular progreso de carga
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            history.push('/dashboard');
-            return 100;
-          }
-          return prev + 2;
-        });
-      }, 90);
+      setLoadingProgress(0);
+      // Simular progreso de carga (solo progreso, sin navegación aquí)
+      if (!progressTimerActive) {
+        setProgressTimerActive(true);
+        const progressInterval = setInterval(() => {
+          setLoadingProgress(prev => (prev >= 100 ? 100 : prev + 2));
+        }, 90);
+        // Limpieza cuando desmonta o cuando se complete la carga
+        return () => {
+          clearInterval(progressInterval);
+          setProgressTimerActive(false);
+        };
+      }
     }
-  }, [user, loading, history]);
+  }, [user, loading]);
+
+  // Efecto dedicado para navegar cuando la barra de progreso alcanza 100
+  useEffect(() => {
+    if (showLoadingScreen && loadingProgress >= 100) {
+      // Navegar tras commit de estado, evitando updates durante render
+      history.push('/dashboard');
+    }
+  }, [showLoadingScreen, loadingProgress, history]);
 
   const showToastMessage = (message: string, color: string = 'success') => {
     setToastMessage(message);
@@ -69,18 +80,19 @@ export default function Login() {
       // Mostrar pantalla de carga
       setShowLoadingScreen(true);
       
-      // Simular progreso de carga
-      const progressInterval = setInterval(() => {
-        setLoadingProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(progressInterval);
-            // Navegar al dashboard después del login exitoso
-            history.push('/dashboard');
-            return 100;
-          }
-          return prev + 2;
-        });
-      }, 90);
+      // Simular progreso de carga (solo progreso)
+      setLoadingProgress(0);
+      if (!progressTimerActive) {
+        setProgressTimerActive(true);
+        const progressInterval = setInterval(() => {
+          setLoadingProgress(prev => (prev >= 100 ? 100 : prev + 2));
+        }, 90);
+        // Limpiar intervalo al desmontar o completar
+        setTimeout(() => {
+          clearInterval(progressInterval);
+          setProgressTimerActive(false);
+        }, 5000);
+      }
       
       showToastMessage('¡Bienvenido a Tuentis!');
     } catch (error: any) {

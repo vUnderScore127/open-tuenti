@@ -3,7 +3,7 @@ import { IonPage, IonContent } from '@ionic/react'
 import AdminHeader, { TabKey } from '@/components/AdminHeader'
 import { useAuth } from '@/lib/auth'
 import { supabase, listInvitations, updateInvitationStatus, Invitation, searchProfiles, getExtendedUserProfile, updateUserProfile, getProfilesByIds, ExtendedUserProfile, createInvitation, listSupportTickets, updateSupportTicket, createSupportTicket, listPages, createPage, updatePage, deletePage, listEvents, createEvent, updateEvent, deleteEvent, listBlogPosts, createBlogPost, updateBlogPost, deleteBlogPost, generateConversationId, markMessagesAsRead, publishGlobalAlert } from '@/lib/supabase'
-import { uploadPostImage } from '@/lib/storageService'
+import { uploadPostImage, BUCKET_NAME } from '@/lib/storageService'
 import '../styles/tuenti-forms.css'
 
 // Usar el TabKey exportado por AdminHeader para evitar tipos duplicados
@@ -580,11 +580,11 @@ const Admin: React.FC = () => {
                                             const fileName = `avatar_${timestamp}.jpg`
                                             const filePath = `${selectedUserId}/avatar/${fileName}`
                                             const { error: uploadError } = await supabase.storage
-                                              .from('tuenties-archive')
+                                              .from(BUCKET_NAME)
                                               .upload(filePath, file, { upsert: true })
                                             if (uploadError) throw uploadError
                                             const { data: signedUrlData, error: urlError } = await supabase.storage
-                                              .from('tuenties-archive')
+                                              .from(BUCKET_NAME)
                                               .createSignedUrl(filePath, 60 * 60 * 24 * 365)
                                             if (urlError || !signedUrlData?.signedUrl) throw urlError || new Error('No se pudo generar URL firmada')
                                             await updateUserProfile(selectedUserId, { ...selectedProfile!, avatar_url: signedUrlData.signedUrl })

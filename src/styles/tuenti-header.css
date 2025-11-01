@@ -1,7 +1,7 @@
 /* Estilos específicos para el Header de Tuenti */
 
 .tuenti-header {
-  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5785B6 0%, #3C6EA3 100%);
+  background-image: url("../../../public/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5785B6 0%, #3C6EA3 100%);
   color: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
@@ -147,14 +147,14 @@
   gap: 4px;
   white-space: nowrap;
   flex-wrap: nowrap;
-  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5686B5 0%, #4575A6 100%);
+  background-image: url("/open-tuenti/noise.KmQE111qYh.png"), linear-gradient(to bottom, #6B9BD2 0%, #4575A6 100%);
   border: 2px solid #396A9D;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 
 .tuenti-upload-button:hover {
-  background-image: url("/noise.KmQE111qYh.png"), linear-gradient(to bottom, #4a7299 0%, #3a6590 100%);
+  background-image: url("/open-tuenti/noise.KmQE111qYh.png"), linear-gradient(to bottom, #4a7299 0%, #3a6590 100%);
 }
 
 .tuenti-divider-small {

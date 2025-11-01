@@ -149,3 +149,31 @@ end;
 $$;
 
 grant execute on function public.reject_friendship(p_user_id uuid, p_friend_id uuid) to authenticated;
+
+-- RPC: obtener o crear username directamente en profiles
+create or replace function public.get_or_create_username(p_user_id uuid)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare current_username text;
+begin
+  -- Leer username actual
+  select username into current_username from public.profiles where id = p_user_id;
+
+  if current_username is not null and current_username <> '' then
+    return current_username;
+  end if;
+
+  -- Generar nuevo username numérico (7 dígitos, con padding)
+  update public.profiles
+    set username = lpad((nextval('public.username_seq'))::text, 7, '0')
+    where id = p_user_id
+    returning username into current_username;
+
+  return current_username;
+end;
+$$;
+
+grant execute on function public.get_or_create_username(p_user_id uuid) to authenticated;

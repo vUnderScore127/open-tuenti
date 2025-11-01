@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
-import { supabase } from '@/lib/supabase';
+import { supabase, createStatusCommentNotification } from '@/lib/supabase';
 
 type ProfileInfo = { first_name?: string; last_name?: string; avatar_url?: string };
 
@@ -33,19 +33,55 @@ const Status: React.FC = () => {
     const load = async () => {
       setLoading(true);
       try {
-        const { data: postData } = await supabase
+        // 1) Cargar el post sin join complejo
+        const { data: postRow, error: postErr } = await supabase
           .from('posts')
-          .select('id, user_id, content, created_at, profiles:first_name, profiles:last_name, profiles:avatar_url')
+          .select('id, user_id, content, created_at')
           .eq('id', postId)
-          .single();
-        setPost(postData as any);
+          .maybeSingle();
+        if (postErr) {
+          console.warn('⚠️ Status: error loading post', postErr);
+        }
 
-        const { data: commentRows } = await supabase
+        let postWithProfile: PostRow | null = (postRow as any) || null;
+        // 2) Cargar perfil del autor para mostrar nombre y avatar
+        if (postRow?.user_id) {
+          const { data: prof, error: profErr } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, avatar_url')
+            .eq('id', postRow.user_id)
+            .maybeSingle();
+          if (profErr) {
+            console.warn('⚠️ Status: error loading post author profile', profErr);
+          }
+          postWithProfile = { ...(postRow as any), profiles: (prof as any) };
+        }
+        setPost(postWithProfile);
+
+        // 3) Cargar comentarios y mapear perfiles de autores de comentario
+        const { data: commentRows, error: commentsErr } = await supabase
           .from('post_comments')
-          .select('id, content, created_at, user_id, profiles:first_name, profiles:last_name')
+          .select('id, content, created_at, user_id')
           .eq('post_id', postId)
           .order('created_at', { ascending: false });
-        setComments((commentRows as any) || []);
+        if (commentsErr) {
+          console.warn('⚠️ Status: error loading comments', commentsErr);
+        }
+        const rows = (commentRows as any) || [];
+        const userIds = Array.from(new Set(rows.map((r: any) => r.user_id).filter(Boolean)));
+        let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
+        if (userIds.length > 0) {
+          const { data: profs, error: profsErr } = await supabase
+            .from('profiles')
+            .select('id, first_name, last_name')
+            .in('id', userIds);
+          if (profsErr) {
+            console.warn('⚠️ Status: error loading comment authors profiles', profsErr);
+          }
+          (profs as any || []).forEach((p: any) => { profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name }; });
+        }
+        const merged = rows.map((r: any) => ({ ...r, profile: profileMap[r.user_id] }));
+        setComments(merged);
       } finally {
         setLoading(false);
       }
@@ -69,6 +105,16 @@ const Status: React.FC = () => {
       if (!error && data) {
         setComments(prev => [data as any, ...prev]);
         setNewComment('');
+        // Crear notificación para el autor del estado si el comentarista es distinto
+        try {
+          const toUserId = (post as any)?.user_id;
+          const commentId = (data as any)?.id;
+          if (toUserId && toUserId !== userId && commentId) {
+            await createStatusCommentNotification(userId, toUserId, String(postId), String(commentId), text);
+          }
+        } catch (e) {
+          console.warn('⚠️ Status: error creando notificación de comentario:', e);
+        }
       }
     } finally {
       setSubmitting(false);
@@ -95,7 +141,7 @@ const Status: React.FC = () => {
               </div>
               <div className="tuenti-post-content">
                 <div className="tuenti-post-meta">
-                  <span className="tuenti-post-author">{`${post.profiles?.first_name || ''} ${post.profiles?.last_name || ''}`.trim() || 'Usuario'}</span>
+                  <span className="tuenti-post-author">{`${post.profiles?.first_name || ''} ${post.profiles?.last_name || ''}`.trim() || post.user_id}</span>
                 </div>
                 <p className="tuenti-post-time">{new Date(post.created_at).toLocaleString()}</p>
                 {post.content && (
