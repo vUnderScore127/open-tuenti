@@ -1,5 +1,6 @@
 import React from 'react'
 import { IonHeader } from '@ionic/react'
+import { useHistory } from 'react-router-dom'
 import '../styles/tuenti-header.css'
 
 export type TabKey = 'usuarios' | 'invitaciones' | 'moderacion' | 'soporte' | 'paginas' | 'eventos' | 'blog'
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const AdminHeader: React.FC<Props> = ({ activeTab, onSelectTab }) => {
+  const history = useHistory()
   const isActive = (tab: TabKey | null) => activeTab === tab
 
   return (
@@ -22,7 +24,7 @@ const AdminHeader: React.FC<Props> = ({ activeTab, onSelectTab }) => {
               <img 
                 src={`${import.meta.env.BASE_URL}Logo_tuenti_positivo_color.png`} 
                 alt="Tuenti" 
-                onClick={() => (window.location.href = '/dashboard')}
+                onClick={() => history.push('/dashboard')}
               />
             </div>
 
@@ -55,7 +57,7 @@ const AdminHeader: React.FC<Props> = ({ activeTab, onSelectTab }) => {
             <div className="tuenti-header-right">
               <button
                 className="tuenti-upload-button"
-                onClick={() => (window.location.href = '/dashboard')}
+                onClick={() => history.push('/dashboard')}
               >
                 <span>Volver a Tuenti</span>
                 <span className="tuenti-upload-icon flip-arrow" aria-hidden="true">
