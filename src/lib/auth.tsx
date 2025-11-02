@@ -92,37 +92,87 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   // Asegurar que exista un perfil para el usuario autenticado (centralizado)
   useEffect(() => {
     const ensureProfileExists = async (uid: string, email?: string | null) => {
+      console.log('🔍 ensureProfileExists: Starting for uid:', uid, 'email:', email)
+      
       // Evitar repetir para el mismo usuario en esta sesión
-      if (profileEnsuredUid === uid) return
+      if (profileEnsuredUid === uid) {
+        console.log('✅ ensureProfileExists: Already ensured for uid:', uid)
+        return
+      }
+      
       try {
+        console.log('🔍 ensureProfileExists: Checking if profile exists for uid:', uid)
+        
         const { data: row, error } = await supabase
           .from('profiles')
           .select('id')
           .eq('id', uid)
           .maybeSingle()
+          
+        if (error) {
+          console.error('❌ ensureProfileExists: Error checking profile existence:', {
+            error,
+            code: error.code,
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            uid
+          })
+          
+          // Si es un error de autenticación, no intentar crear el perfil
+          if (error.message?.includes('JWT') || error.code === '401') {
+            console.error('🔐 ensureProfileExists: Auth error, skipping profile creation')
+            return
+          }
+        }
+        
         if (!error && row && row.id) {
+          console.log('✅ ensureProfileExists: Profile already exists for uid:', uid)
           setProfileEnsuredUid(uid)
           return
         }
+        
+        console.log('🔧 ensureProfileExists: Creating minimal profile for uid:', uid)
+        
         // Crear perfil mínimo autorizado por RLS (id = auth.uid())
         const payload: any = { id: uid }
         if (email) payload.email = email
+        
         const { error: insErr } = await supabase
           .from('profiles')
           .insert(payload)
+          
         if (insErr) {
-          console.warn('AuthProvider: error creando perfil mínimo', insErr)
+          console.error('❌ ensureProfileExists: Error creating minimal profile:', {
+            error: insErr,
+            code: insErr.code,
+            message: insErr.message,
+            details: insErr.details,
+            hint: insErr.hint,
+            uid,
+            payload
+          })
         } else {
-          console.debug('AuthProvider: perfil mínimo creado para', uid)
+          console.log('✅ ensureProfileExists: Minimal profile created for uid:', uid)
         }
       } catch (e) {
-        console.warn('AuthProvider: excepción asegurando perfil', e)
+        console.error('❌ ensureProfileExists: Exception ensuring profile:', {
+          error: e,
+          uid,
+          email,
+          errorType: typeof e,
+          errorName: e instanceof Error ? e.name : 'Unknown',
+          errorMessage: e instanceof Error ? e.message : String(e),
+          stack: e instanceof Error ? e.stack : undefined
+        })
       } finally {
+        console.log('🏁 ensureProfileExists: Marking as ensured for uid:', uid)
         setProfileEnsuredUid(uid)
       }
     }
 
     if (user?.id) {
+      console.log('🚀 ensureProfileExists: Triggering for user:', user.id)
       // Ejecutar sin bloquear la UI
       ensureProfileExists(user.id, (user as any)?.email || null)
     }
@@ -137,37 +187,61 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   }
 
   const signOut = async () => {
-    console.log('🔐 signOut: Iniciando proceso de logout');
+    console.log('🚪 signOut: Starting logout process')
+    
     try {
-      // Marcar offline ANTES de cerrar sesión, para que se propague al instante
-      const uid = user?.id || (await supabase.auth.getUser()).data?.user?.id || null
-      console.log('🔐 signOut: UID para marcar offline:', uid);
-      if (uid) {
-        try {
-          await supabase.from('profiles').update({ is_online: false }).eq('id', uid)
-          console.log('🔐 signOut: Usuario marcado como offline');
-        } catch (e) {
-          console.warn('Error marcando offline:', e);
+      // Actualizar estado is_online antes de cerrar sesión
+      if (user?.id) {
+        console.log('🔄 signOut: Updating is_online status for user:', user.id)
+        
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ is_online: false })
+          .eq('id', user.id)
+          
+        if (updateError) {
+          console.error('❌ signOut: Error updating is_online status:', {
+            error: updateError,
+            code: updateError.code,
+            message: updateError.message,
+            details: updateError.details,
+            hint: updateError.hint,
+            userId: user.id
+          })
+        } else {
+          console.log('✅ signOut: is_online status updated successfully')
         }
       }
-    } finally {
-      console.log('🔐 signOut: Limpiando localStorage y estado');
+      
       // Limpiar localStorage
       localStorage.removeItem('lastAuthAt');
       
-      // Cerrar sesión en Supabase
-      console.log('🔐 signOut: Cerrando sesión en Supabase');
+      console.log('🔐 signOut: Calling Supabase auth.signOut()')
       const { error } = await supabase.auth.signOut()
+      
       if (error) {
-        console.error('❌ Error en supabase.auth.signOut:', error);
-        throw error;
+        console.error('❌ signOut: Error during Supabase signOut:', {
+          error,
+          code: error.status,
+          message: error.message
+        })
+        throw error
       }
       
-      console.log('🔐 signOut: Sesión cerrada, actualizando estado local');
       // Forzar actualización del estado local
       setUser(null);
       setProfileEnsuredUid(null);
-      console.log('🔐 signOut: Proceso completado');
+      
+      console.log('✅ signOut: Logout completed successfully')
+    } catch (error) {
+      console.error('❌ signOut: Exception during logout:', {
+        error,
+        errorType: typeof error,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      })
+      throw error
     }
   }
 

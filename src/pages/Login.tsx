@@ -24,7 +24,6 @@ export default function Login() {
   const [toastColor, setToastColor] = useState('success');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   
   const { user, loading, signIn } = useAuth();
   const history = useHistory();
@@ -166,7 +165,7 @@ export default function Login() {
           backgroundImage: `url("${import.meta.env.BASE_URL}noise.KmQE111qYh.png"), radial-gradient(circle at center, #6e90bc 0%, #426990 100%)`
         }}>
           <div className="contLogin">
-            {/* Cover section */}
+            {/* Cover section - información descriptiva y logo a la izquierda */}
             <div className="cover">
               <img src={`${import.meta.env.BASE_URL}Logo_tuenti_positivo_color.png`} alt="tuenti" />
               <div className="description">
@@ -181,7 +180,7 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Login section */}
+            {/* Login section - posicionado a la derecha */}
             <div className="login">
               <div className="body">
                 <form onSubmit={handleLogin}>
@@ -209,14 +208,8 @@ export default function Login() {
                       </div>
                       <input type="submit" value="Entrar" className="submit" />
                     </li>
-                    <li>
-                      <input 
-                        type="checkbox" 
-                        id="recordarme" 
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                      />
-                      <label htmlFor="recordarme">Recordarme</label>
+                    <li className="login-separator">
+                      <div className="login-separator-line"></div>
                     </li>
                     <li className="forgot-password-row">
                       <a href={`${import.meta.env.BASE_URL}reset-password`}>¿Olvidaste tu contraseña?</a>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase, getUserProfile, createStatusCommentNotification } from '../lib/supabase';
 import '../styles/tuenti-main-content.css';
 
@@ -22,14 +23,16 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
   const [isFocused, setIsFocused] = useState(false);
   const [commentBoxOpen, setCommentBoxOpen] = useState<Record<string, boolean>>({});
   const [commentsOpen, setCommentsOpen] = useState<Record<string, boolean>>({});
-  const [commentsByPost, setCommentsByPost] = useState<Record<string, { id: string; content: string; created_at: string; updated_at?: string; is_edited?: boolean; edit_history?: any[]; user_id: string; profiles?: { first_name?: string; last_name?: string } }[]>>({});
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, { id: string; content: string; created_at: string; updated_at?: string; is_edited?: boolean; edit_history?: any[]; user_id: string; profiles?: { id?: string; first_name?: string; last_name?: string; avatar_url?: string } }[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [commentSubmitting, setCommentSubmitting] = useState<Record<string, boolean>>({});
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState<string>('');
-  const [showHistory, setShowHistory] = useState<Record<string, boolean>>({});
+  const [historyModalFor, setHistoryModalFor] = useState<{ id: string; edit_history: any[] } | null>(null);
+  const [likesByPost, setLikesByPost] = useState<Record<string, { liked: boolean; count: number }>>({});
+  const [likePulseId, setLikePulseId] = useState<string | null>(null);
   const maxLength = 320;
   const remainingChars = maxLength - statusText.length;
   const isNearLimit = remainingChars <= 20;
@@ -39,6 +42,18 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
       setCurrentUserId(data?.user?.id || null);
     });
   }, []);
+
+  const getTimeAgo = (timestamp: Date) => {
+    const now = new Date();
+    const diffInMs = now.getTime() - timestamp.getTime();
+    const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInMinutes < 1) return 'ahora mismo';
+    if (diffInMinutes < 60) return `hace ${diffInMinutes} minuto${diffInMinutes > 1 ? 's' : ''}`;
+    if (diffInHours < 24) return `hace ${diffInHours} hora${diffInHours > 1 ? 's' : ''}`;
+    return `hace ${diffInDays} día${diffInDays > 1 ? 's' : ''}`;
+  };
 
   const handleTextareaInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
     const target = e.target as HTMLTextAreaElement;
@@ -86,7 +101,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
               content: (inserted as any)?.content || text,
               created_at: (inserted as any)?.created_at || new Date().toISOString(),
               user_id: userId,
-              profiles: profile ? { first_name: profile.first_name, last_name: profile.last_name } : undefined,
+              profiles: profile ? { id: profile.id, first_name: profile.first_name, last_name: profile.last_name, avatar_url: profile.avatar_url } : undefined,
             },
             ...(prev[postId] || []),
           ],
@@ -122,15 +137,15 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
         console.log('📥 submitComment: fetched comments count', (commentsData as any)?.length ?? 0);
         // Enriquecer con nombres de perfiles en un segundo fetch
         const userIds = Array.from(new Set(((commentsData as any) || []).map((c: any) => c.user_id).filter(Boolean)));
-        let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
+        let profileMap: Record<string, { id?: string; first_name?: string; last_name?: string; avatar_url?: string }> = {};
         if (userIds.length > 0) {
           const { data: profilesData, error: profilesErr } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name')
+            .select('id, first_name, last_name, avatar_url')
             .in('id', userIds);
           if (!profilesErr) {
             (profilesData as any || []).forEach((p: any) => {
-              profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name };
+              profileMap[p.id] = { id: p.id, first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url };
             });
           } else {
             console.warn('⚠️ submitComment: profiles fetch error', profilesErr);
@@ -168,15 +183,15 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
         console.log('📥 toggleComments: fetched comments count', (commentsData as any)?.length ?? 0);
         // Cargar nombres de perfiles en un segundo paso
         const userIds = Array.from(new Set(((commentsData as any) || []).map((c: any) => c.user_id).filter(Boolean)));
-        let profileMap: Record<string, { first_name?: string; last_name?: string }> = {};
+        let profileMap: Record<string, { id?: string; first_name?: string; last_name?: string; avatar_url?: string }> = {};
         if (userIds.length > 0) {
           const { data: profilesData, error: profilesErr } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name')
+            .select('id, first_name, last_name, avatar_url')
             .in('id', userIds);
           if (!profilesErr) {
             (profilesData as any || []).forEach((p: any) => {
-              profileMap[p.id] = { first_name: p.first_name, last_name: p.last_name };
+              profileMap[p.id] = { id: p.id, first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url };
             });
           } else {
             console.warn('⚠️ toggleComments: profiles fetch error', profilesErr);
@@ -297,12 +312,31 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
           disabled={saving || !statusText.trim()}
           onClick={async () => {
             if (!onStatusSave || !statusText.trim()) return;
+            const payload = statusText.trim();
+            console.log('[MainContent] Save clicked', { payloadLen: payload.length, payloadPreview: payload.slice(0, 80) });
             setSaving(true);
+            const start = Date.now();
             try {
-              await onStatusSave(statusText.trim());
+              console.log('[MainContent] Calling onStatusSave…');
+              // Evita que el UI se quede "Guardando…" si la promesa no resuelve
+              const timeoutMs = 10000;
+              const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Save timeout exceeded')), timeoutMs));
+              await Promise.race([Promise.resolve(onStatusSave(payload)), timeoutPromise]);
+              const tookMs = Date.now() - start;
+              console.log('[MainContent] onStatusSave resolved', { tookMs });
               setStatusText('');
+            } catch (err) {
+              const e: any = err;
+              console.error('[MainContent] onStatusSave error', {
+                message: e?.message,
+                code: e?.code,
+                details: e?.details,
+                hint: e?.hint,
+                stack: e?.stack,
+              });
             } finally {
               setSaving(false);
+              console.log('[MainContent] saving=false');
             }
           }}
         >
@@ -329,7 +363,9 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                 </div>
                 <div className="tuenti-post-content">
                   <div className="tuenti-post-meta">
-                    <span className="tuenti-post-author">{p.mediaUser?.name || p.user}</span>
+                    <Link to={p.authorId && currentUserId === p.authorId ? '/profile' : `/profile/${p.authorId}`} className="tuenti-post-author" style={{ textDecoration: 'none' }}>
+                      {p.mediaUser?.name || p.user}
+                    </Link>
                     {p.content && <span className="tuenti-post-action">{p.content}</span>}
                   </div>
                   <p className="tuenti-post-time">{p.time}</p>
@@ -344,13 +380,73 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                     </div>
                   )}
                   <div className="tuenti-post-actions">
-                    <button className="tuenti-post-action-button" onClick={() => toggleCommentBox(p.id)}>
-                      <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Comentar" className="tuenti-post-action-icon" />
+                    {/* Me gusta (primero), con contador y texto "Te gusta" al activar */}
+                    <button
+                      className={`tuenti-post-action-button ${likePulseId === p.id ? 'like-pulse' : ''}`}
+                      aria-label="Me gusta"
+                      title="Me gusta"
+                      onClick={() => {
+                        setLikesByPost(prev => {
+                          const cur = prev[p.id] || { liked: false, count: 0 };
+                          const nextLiked = !cur.liked;
+                          const nextCount = Math.max(0, cur.count + (nextLiked ? 1 : -1));
+                          if (nextLiked) {
+                            setLikePulseId(p.id);
+                            setTimeout(() => setLikePulseId(null), 360);
+                          }
+                          return { ...prev, [p.id]: { liked: nextLiked, count: nextCount } };
+                        });
+                      }}
+                      style={{
+                        padding: '6px 8px',
+                        borderRadius: 6,
+                        background: 'transparent',
+                        border: 'none',
+                        color: (likesByPost[p.id]?.liked || (likesByPost[p.id]?.count ?? 0) > 0) ? '#3571b4' : '#222',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      <img
+                        src={`${import.meta.env.BASE_URL}tuenti_logo_icon.png`}
+                        alt="Me gusta"
+                        className="tuenti-post-action-icon"
+                        style={{
+                          width: 18,
+                          height: 18,
+                          filter: (likesByPost[p.id]?.liked || (likesByPost[p.id]?.count ?? 0) > 0) ? 'none' : 'grayscale(100%) brightness(0.9)'
+                        }}
+                      />
+                      <span>
+                        Me gusta
+                        <span
+                          style={{
+                            marginLeft: 4,
+                            visibility: (likesByPost[p.id]?.count ?? 0) > 0 ? 'visible' : 'hidden'
+                          }}
+                        >
+                          ({likesByPost[p.id]?.count ?? 0})
+                        </span>
+                      </span>
+                    </button>
+
+                    {/* Comentar (sin icono), color Tuenti permanente */}
+                    <button
+                      className="tuenti-post-action-button"
+                      onClick={() => toggleCommentBox(p.id)}
+                      style={{ color: '#3571b4' }}
+                    >
                       Comentar
                     </button>
-                    <button className="tuenti-post-action-button" onClick={() => toggleComments(p.id)}>
-                      <img src={`${import.meta.env.BASE_URL}comment.svg`} alt="Ver comentarios" className="tuenti-post-action-icon" />
-                      {commentsOpen[p.id] ? 'Ocultar comentarios' : 'Ver comentarios'}
+
+                    {/* Ver/Ocultar comentarios (sin icono), color Tuenti permanente */}
+                    <button
+                      className="tuenti-post-action-button"
+                      onClick={() => toggleComments(p.id)}
+                      style={{ color: '#3571b4' }}
+                    >
+                      {commentsOpen[p.id] ? 'Ocultar comentarios' : `Ver comentarios${p.commentsCount ? ` (${p.commentsCount})` : ''}`}
                     </button>
                   </div>
                   {commentBoxOpen[p.id] && (
@@ -381,14 +477,26 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                       {(commentsByPost[p.id] || []).map((c) => (
                         <li key={c.id} style={{ fontSize: 12, color: '#111', padding: '4px 0', borderBottom: '1px solid #f0f0f0' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <div>
-                              <span style={{ fontWeight: 600 }}>{c.profiles?.first_name || ''} {c.profiles?.last_name || ''}</span>
-                              <span style={{ color: '#999', marginLeft: 6 }}>{new Date(c.created_at).toLocaleString()}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                              <div style={{ width: 24, height: 24, borderRadius: 2, overflow: 'hidden', background: '#e5e5e5' }}>
+                                {c.profiles?.avatar_url ? (
+                                  <img src={c.profiles.avatar_url} alt={(c.profiles?.first_name || '') + ' ' + (c.profiles?.last_name || '')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#999' }}>👤</div>
+                                )}
+                              </div>
+                              <Link to={c.user_id === currentUserId ? '/profile' : `/profile/${c.user_id}`} style={{ fontWeight: 600, color: '#1f2937', textDecoration: 'none' }}>
+                                {c.profiles?.first_name || ''} {c.profiles?.last_name || ''}
+                              </Link>
+                              <span style={{ color: '#999', marginLeft: 6 }}>{getTimeAgo(new Date(c.created_at))}</span>
                               {c.is_edited && (
                                 <span style={{ color: '#999', marginLeft: 6 }}>
-                                  • editado
-                                  <button style={{ marginLeft: 6, background: 'none', border: 'none', color: '#3571b4', cursor: 'pointer' }} onClick={() => setShowHistory((prev) => ({ ...prev, [c.id]: !prev[c.id] }))}>
-                                    Ver cambios
+                                  •
+                                  <button
+                                    style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', padding: 0, marginLeft: 6 }}
+                                    onClick={() => setHistoryModalFor({ id: c.id, edit_history: Array.isArray(c.edit_history) ? c.edit_history : [] })}
+                                  >
+                                    editado
                                   </button>
                                 </span>
                               )}
@@ -416,20 +524,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                           ) : (
                             <div style={{ marginTop: 4 }}>{c.content}</div>
                           )}
-                          {showHistory[c.id] && Array.isArray(c.edit_history) && c.edit_history.length > 0 && (
-                            <div style={{ background: '#fafafa', border: '1px solid #eee', borderRadius: 3, padding: '6px 8px', marginTop: 6 }}>
-                              <div style={{ fontWeight: 600, marginBottom: 4 }}>Historial de cambios</div>
-                              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                                {c.edit_history.map((h: any, idx: number) => (
-                                  <li key={idx} style={{ marginBottom: 6 }}>
-                                    <div style={{ color: '#666' }}>{new Date(h.at).toLocaleString()}</div>
-                                    <div><span style={{ color: '#b91c1c' }}>Antes:</span> {h.from}</div>
-                                    <div><span style={{ color: '#047857' }}>Después:</span> {h.to}</div>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                          {/* Historial inline eliminado: se muestra en modal al hacer clic en "ver cambios" */}
                         </li>
                       ))}
                       </ul>
@@ -443,6 +538,44 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
           ))}
         </div>
       </div>
+      {historyModalFor && (
+        <CommentHistoryModal
+          open={true}
+          history={historyModalFor.edit_history}
+          onClose={() => setHistoryModalFor(null)}
+        />
+      )}
     </main>
+  );
+}
+
+// Modal de historial de cambios de comentario
+// Se renderiza al final para asegurar overlay cubre el contenido
+export function CommentHistoryModal({ open, history, onClose }: { open: boolean; history: any[]; onClose: () => void }) {
+  if (!open) return null;
+  const items = Array.isArray(history) ? [...history].reverse() : [];
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, backdropFilter: 'blur(2px)' }}>
+      <div style={{ background: '#ffffff', width: 'min(640px, 92vw)', maxHeight: '80vh', borderRadius: 12, boxShadow: '0 16px 40px rgba(0,0,0,0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '14px 18px', borderBottom: '1px solid #eee', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <h3 style={{ margin: 0, fontSize: 16 }}>Historial de cambios</h3>
+          <button onClick={onClose} style={{ background: 'none', border: '1px solid #e5e7eb', borderRadius: 6, padding: '6px 10px', fontSize: 13, color: '#374151', cursor: 'pointer' }}>Cerrar</button>
+        </div>
+        <div style={{ padding: 18, overflowY: 'auto' }}>
+          {items.length === 0 ? (
+            <div style={{ fontSize: 13, color: '#666' }}>No hay cambios registrados para este comentario.</div>
+          ) : (
+            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {items.map((h: any, idx: number) => (
+                <li key={idx} style={{ border: '1px solid #eee', borderRadius: 10, padding: '10px 12px', background: '#fafafa' }}>
+                  <div style={{ fontSize: 12, color: '#666' }}>{new Date(h.at).toLocaleString('es-ES')}</div>
+                  <div style={{ marginTop: 6 }}><span style={{ color: '#b91c1c', fontWeight: 600 }}>Anterior:</span> {h.from}</div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

@@ -35,7 +35,23 @@ export interface UserVisit {
 
 export async function getUserProfile(userId: string): Promise<UserProfile | null> {
   console.log('🔍 Getting user profile for:', userId)
+  
+  // Verificar que tenemos un userId válido
+  if (!userId || typeof userId !== 'string') {
+    console.error('❌ Invalid userId provided:', userId)
+    return null
+  }
+
   try {
+    // Verificar estado de autenticación antes de hacer la petición
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError) {
+      console.error('❌ Auth error before profile request:', authError)
+      return null
+    }
+    
+    console.log('🔐 Current auth user:', user?.id, 'requesting profile for:', userId)
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -43,36 +59,110 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
       .single()
 
     if (error) {
-      console.error('❌ Error getting user profile:', error)
+      console.error('❌ Error getting user profile:', {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        userId,
+        currentUser: user?.id
+      })
+      
+      // Casos específicos de error
+      if (error.code === 'PGRST116') {
+        console.warn('⚠️ No profile found for user:', userId)
+        return null
+      }
+      
+      if (error.message?.includes('JWT')) {
+        console.error('🔐 JWT/Auth related error - user may need to re-authenticate')
+      }
+      
       return null
     }
+    
     if (!data) {
       console.warn('⚠️ No profile data found for', userId)
       return null
     }
-    console.log('🔄 Raw profile data:', data)
+    
+    console.log('✅ Successfully loaded profile for:', userId)
     return data as UserProfile
   } catch (error) {
-    console.error('❌ Exception getting user profile:', error)
+    console.error('❌ Exception getting user profile:', {
+      error,
+      userId,
+      errorType: typeof error,
+      errorName: error instanceof Error ? error.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return null
   }
 }
 
 // Perfil básico para cargas rápidas en UI (id, first_name, last_name, avatar_url)
 export async function getBasicProfile(userId: string): Promise<Pick<UserProfile, 'id' | 'first_name' | 'last_name' | 'avatar_url'> | null> {
+  console.log('🔍 Getting basic profile for:', userId)
+  
+  // Verificar que tenemos un userId válido
+  if (!userId || typeof userId !== 'string') {
+    console.error('❌ Invalid userId provided to getBasicProfile:', userId)
+    return null
+  }
+
   try {
+    // Verificar estado de autenticación antes de hacer la petición
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError) {
+      console.error('❌ Auth error before basic profile request:', authError)
+      return null
+    }
+    
+    console.log('🔐 Current auth user:', user?.id, 'requesting basic profile for:', userId)
+
     const { data, error } = await supabase
       .from('profiles')
       .select('id, first_name, last_name, avatar_url')
       .eq('id', userId)
       .single()
+      
     if (error) {
-      console.error('❌ Error getting basic profile:', error)
+      console.error('❌ Error getting basic profile:', {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        userId,
+        currentUser: user?.id
+      })
+      
+      // Casos específicos de error
+      if (error.code === 'PGRST116') {
+        console.warn('⚠️ No basic profile found for user:', userId)
+        return null
+      }
+      
+      if (error.message?.includes('JWT')) {
+        console.error('🔐 JWT/Auth related error in basic profile - user may need to re-authenticate')
+      }
+      
       return null
     }
+    
+    console.log('✅ Successfully loaded basic profile for:', userId)
     return (data as any) || null
   } catch (error) {
-    console.error('❌ Exception getting basic profile:', error)
+    console.error('❌ Exception getting basic profile:', {
+      error,
+      userId,
+      errorType: typeof error,
+      errorName: error instanceof Error ? error.name : 'Unknown',
+      errorMessage: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined
+    })
     return null
   }
 }

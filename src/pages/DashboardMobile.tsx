@@ -19,7 +19,7 @@ import {
   addOutline,
   notificationsOutline
 } from 'ionicons/icons';
-import { useHistory } from 'react-router-dom';
+import { useHistory, Link } from 'react-router-dom';
 import { useAuth } from '../lib/auth';
 import { supabase } from '../lib/supabase';
 import BottomNavBar from '../components/BottomNavBar';
@@ -46,7 +46,7 @@ const DashboardMobile: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
   const [lastStatusText, setLastStatusText] = useState<string>('');
-  const [feedFilter, setFeedFilter] = useState<'all' | 'friends'>('all');
+  const [feedFilter, setFeedFilter] = useState<'all' | 'friends'>('friends');
 
   useEffect(() => {
     if (user?.id) {
@@ -79,17 +79,25 @@ const DashboardMobile: React.FC = () => {
         .limit(20);
 
       if (feedFilter === 'friends') {
-        const { data: friendships } = await supabase
+        const { data: friendships, error: fsErr } = await supabase
           .from('friendships')
-          .select('friend_id')
-          .eq('user_id', user.id)
+          .select('user_id, friend_id, status')
+          .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
           .eq('status', 'accepted');
-        
-        const friendIds = friendships?.map(f => f.friend_id) || [];
+        const friendIds = (friendships || []).map((f: any) => (f.user_id === user.id ? f.friend_id : f.user_id));
+        if (fsErr) {
+          console.warn('[Mobile Feed] Friendships fetch failed. Keeping current posts to avoid empty feed.', fsErr);
+          setPostsLoading(false);
+          return;
+        }
         if (friendIds.length > 0) {
-          query = query.in('user_id', [...friendIds, user.id]);
+          // Solo posts de amigos; excluir los propios
+          query = query.in('user_id', friendIds);
         } else {
-          query = query.eq('user_id', user.id);
+          // Sin amigos aceptados: feed vacío
+          setPosts([]);
+          setPostsLoading(false);
+          return;
         }
       }
 
@@ -229,7 +237,11 @@ const DashboardMobile: React.FC = () => {
                     )}
                   </IonAvatar>
                   <div className="mobile-post-user-info">
-                    <h3>{post.mediaUser.name}</h3>
+                    <h3>
+                      <Link to={post.authorId === user?.id ? '/profile' : `/profile/${post.authorId}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                        {post.mediaUser.name}
+                      </Link>
+                    </h3>
                     <p>{post.time}</p>
                   </div>
                 </div>

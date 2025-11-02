@@ -177,7 +177,7 @@ const Header: React.FC = () => {
                 >
                   <span>Admin</span>
                   <span className="tuenti-upload-icon">
-                    <img src={`${import.meta.env.BASE_URL}shield-check.svg`} alt="Admin" />
+                    <img src={`${import.meta.env.BASE_URL}admin-outlined.svg`} alt="Admin" />
                   </span>
                 </button>
               )}

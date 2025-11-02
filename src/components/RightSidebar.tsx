@@ -580,7 +580,9 @@ const RightSidebar: React.FC = () => {
         <div className="right-sidebar-title">
           <div className={`online-indicator ${isOnline ? 'friend-status-online' : 'friend-status-offline'}`}></div>
           <h3 className="chat-title">Chat</h3>
-          <span className="friends-count">({friends.length})</span>
+          {isOnline && (
+            <span className="friends-count">({friends.length})</span>
+          )}
         </div>
         <div className="options-wrapper" ref={settingsWrapperRef}>
           <button
@@ -680,7 +682,7 @@ const RightSidebar: React.FC = () => {
               <div className="friend-info">
                 <div className="friend-status-indicator friend-status-online"></div>
                 <span className="friend-name">{friend.first_name} {friend.last_name}</span>
-                {unreadMessages[friend.id] > 0 && (
+                {isOnline && unreadMessages[friend.id] > 0 && (
                   <div className="unread-badge">
                     {unreadMessages[friend.id] > 99 ? '99+' : unreadMessages[friend.id]}
                   </div>
@@ -709,7 +711,7 @@ const RightSidebar: React.FC = () => {
                 <div className="friend-status-indicator friend-status-offline"></div>
                 <span className="friend-name friend-name-offline">{friend.first_name} {friend.last_name}</span>
               </div>
-              {unreadMessages[friend.id] > 0 && (
+              {isOnline && unreadMessages[friend.id] > 0 && (
                 <div className="unread-badge">
                   {unreadMessages[friend.id] > 99 ? '99+' : unreadMessages[friend.id]}
                 </div>

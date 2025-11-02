@@ -31,7 +31,7 @@ const Dashboard: React.FC = () => {
   const navigate = useHistory();
   const { user, loading } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [feedFilter, setFeedFilter] = useState<'all' | 'friends'>('all');
+  const [feedFilter, setFeedFilter] = useState<'all' | 'friends'>('friends');
   const [postsLoading, setPostsLoading] = useState(true);
   const [lastStatusText, setLastStatusText] = useState<string>('');
   const [lastStatusTime, setLastStatusTime] = useState<string>('');
@@ -45,19 +45,40 @@ const Dashboard: React.FC = () => {
   const loadRealPosts = async (userId: string, filterType: 'all' | 'friends' = 'friends') => {
     try {
       let computedFriendIds: string[] = [];
+      let friendFetchOk = true;
       if (filterType === 'friends') {
         const { data: friendships, error: fsErr } = await supabase
           .from('friendships')
           .select('user_id, friend_id, status')
           .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
           .eq('status', 'accepted');
+        friendFetchOk = !fsErr;
         if (!fsErr && friendships) {
           computedFriendIds = friendships.map((f: any) => (f.user_id === userId ? f.friend_id : f.user_id));
         }
         console.debug('[Feed] Friendships fetched:', { userId, count: (friendships||[]).length, computedFriendIds, error: fsErr?.message });
       }
-      // Mantener IDs de amigos para Realtime
-      setFriendIds(computedFriendIds.length > 0 ? computedFriendIds : []);
+      // Mantener IDs de amigos para Realtime; no limpiar si la carga falló
+      if (friendFetchOk) {
+        setFriendIds(computedFriendIds.length > 0 ? computedFriendIds : []);
+      }
+
+      // Si el filtro es "friends":
+      // - si la petición de amistades falló, no vaciar el feed; mantener el estado actual.
+      // - si fue correcta y no hay amigos, vaciar el feed.
+      if (filterType === 'friends') {
+        if (!friendFetchOk) {
+          console.warn('[Feed] Friendships fetch failed. Keeping current posts to avoid empty feed.');
+          setPostsLoading(false);
+          return;
+        }
+        if (computedFriendIds.length === 0) {
+          console.debug('[Feed] No accepted friends. Empty feed for friends filter');
+          setPosts([]);
+          setPostsLoading(false);
+          return;
+        }
+      }
 
       // 1) Posts básicos sin joins implícitos
       let postsQuery = supabase
@@ -189,6 +210,7 @@ const Dashboard: React.FC = () => {
 
   const loadLastStatus = async (userId: string) => {
     try {
+      console.log('[Status] loadLastStatus start', { userId });
       const { data, error } = await supabase
         .from('posts')
         .select('id, content, created_at')
@@ -200,7 +222,9 @@ const Dashboard: React.FC = () => {
         setLastStatusTime(getTimeAgo(new Date(data[0].created_at)));
         console.debug('[Status] Last status loaded:', { text: data[0].content, time: data[0].created_at });
       }
-    } catch (_) {}
+    } catch (e) {
+      console.error('[Status] loadLastStatus error', e);
+    }
   };
 
   const getTimeAgo = (timestamp: Date) => {
@@ -221,12 +245,10 @@ const Dashboard: React.FC = () => {
       return;
     }
     if (user?.id) {
-      // Evitar activar el loader si ya está cargando
-      if (!postsLoading) {
-        setPostsLoading(true);
-        loadRealPosts(user.id, feedFilter);
-        loadLastStatus(user.id);
-      }
+      // Cargar siempre al montar/cambiar filtros para asegurar último estado visible
+      setPostsLoading(true);
+      loadRealPosts(user.id, feedFilter);
+      loadLastStatus(user.id);
     }
   }, [user, loading, feedFilter]);
 
@@ -277,7 +299,7 @@ const Dashboard: React.FC = () => {
     return () => {
       channel.unsubscribe();
     };
-  }, [user?.id, friendIds, feedFilter, postsLoading]);
+  }, [user?.id, friendIds, feedFilter]);
 
   // Elimina completamente estos bloques:
   // const profileSidebarRef = useRef<HTMLDivElement>(null);
@@ -307,15 +329,31 @@ const Dashboard: React.FC = () => {
   const handleStatusUpdate = async (statusText: string) => {
     if (!user?.id) return;
     try {
-      const { error } = await supabase
+      console.log('[Dashboard] handleStatusUpdate start', { userId: user.id, len: statusText.length, preview: statusText.slice(0, 80) });
+      const start = Date.now();
+      // Usar array y select+single para forzar retorno inmediato del row insertado
+      const insertPromise = supabase
         .from('posts')
-        .insert({
-          content: statusText,
-          user_id: user.id
-        });
-      console.debug('[Status] Inserted post from current user, error?', error);
-      if (!error) reloadPosts();
-    } catch (error) {}
+        .insert([{ content: statusText, user_id: user.id }])
+        .select('id, content, created_at')
+        .single();
+
+      const { data, error }: any = await insertPromise;
+      const tookMs = Date.now() - start;
+      console.debug('[Status] Inserted post from current user', { tookMs, data: data ? { id: data.id, created_at: data.created_at } : null, error: error ? { code: error.code, message: error.message, details: error.details, hint: error.hint } : null });
+      if (!error) {
+        // Actualiza inmediatamente el último estado para reflejarlo en la UI sin esperar a la carga
+        setLastStatusText(data?.content || statusText);
+        setLastStatusTime('ahora mismo');
+        reloadPosts();
+      } else {
+        throw error;
+      }
+    } catch (err) {
+      const e: any = err;
+      console.error('[Dashboard] handleStatusUpdate error', { code: e?.code, message: e?.message, details: e?.details, hint: e?.hint, stack: e?.stack });
+      throw err;
+    }
   };
 
   const openCommentsModalForPost = async (postId: string) => {

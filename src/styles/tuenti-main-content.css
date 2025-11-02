@@ -214,8 +214,8 @@
 }
 
 .tuenti-post-action {
-  font-size: 12px;
-  color: #666;
+  font-size: 13px;
+  color: #111;
 }
 
 .tuenti-post-time {
@@ -272,6 +272,29 @@
 
 .tuenti-post-action-button:hover {
   color: #3571b4;
+}
+
+/* Efecto visual al dar Me gusta: pulso suave con brillo */
+.tuenti-post-action-button.like-pulse {
+  animation: likePulse 360ms ease-out;
+}
+
+@keyframes likePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(53, 113, 180, 0.0);
+    filter: brightness(1) saturate(1);
+  }
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 8px rgba(53, 113, 180, 0.18);
+    filter: brightness(1.05) saturate(1.1);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(53, 113, 180, 0.0);
+    filter: brightness(1) saturate(1);
+  }
 }
 
 .tuenti-post-action-button .emoji {
