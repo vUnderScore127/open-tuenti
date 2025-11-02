@@ -31,6 +31,13 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDraft, setEditingDraft] = useState<string>('');
   const [historyModalFor, setHistoryModalFor] = useState<{ id: string; edit_history: any[] } | null>(null);
+
+  // Menú y edición de estados (posts)
+  const [postMenusOpen, setPostMenusOpen] = useState<Record<string, boolean>>({});
+  const [postEditingId, setPostEditingId] = useState<string | null>(null);
+  const [postEditingDraft, setPostEditingDraft] = useState<string>('');
+  const [postOverwrites, setPostOverwrites] = useState<Record<string, string>>({});
+  const [hiddenPosts, setHiddenPosts] = useState<Record<string, boolean>>({});
   const [likesByPost, setLikesByPost] = useState<Record<string, { liked: boolean; count: number }>>({});
   const [likePulseId, setLikePulseId] = useState<string | null>(null);
   const maxLength = 320;
@@ -257,6 +264,62 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
     }
   };
 
+  // --- Acciones de menú para estados (posts) ---
+  const togglePostMenu = (postId: string) => {
+    setPostMenusOpen((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const startPostEdit = (postId: string, content: string) => {
+    setPostEditingId(postId);
+    setPostEditingDraft(content);
+    setPostMenusOpen((prev) => ({ ...prev, [postId]: false }));
+  };
+
+  const cancelPostEdit = () => {
+    setPostEditingId(null);
+    setPostEditingDraft('');
+  };
+
+  const savePostEdit = async (postId: string) => {
+    const newText = postEditingDraft.trim();
+    if (!newText) return;
+    try {
+      // Intento de persistencia (RLS puede bloquear update si no hay políticas)
+      if (currentUserId) {
+        const { error } = await supabase
+          .from('posts')
+          .update({ content: newText })
+          .eq('id', postId)
+          .eq('user_id', currentUserId);
+        if (error) console.warn('⚠️ savePostEdit: update bloqueado por RLS o error', error);
+      }
+    } catch (e) {
+      console.warn('⚠️ savePostEdit: error', e);
+    }
+    // Actualización local para reflejar cambios al instante
+    setPostOverwrites((prev) => ({ ...prev, [postId]: newText }));
+    cancelPostEdit();
+  };
+
+  const deletePost = async (postId: string) => {
+    try {
+      if (currentUserId) {
+        const { error } = await supabase
+          .from('posts')
+          .delete()
+          .eq('id', postId)
+          .eq('user_id', currentUserId);
+        if (error) console.warn('⚠️ deletePost: delete bloqueado por RLS o error', error);
+      }
+    } catch (e) {
+      console.warn('⚠️ deletePost: error', e);
+    } finally {
+      setPostMenusOpen((prev) => ({ ...prev, [postId]: false }));
+      // Ocultar localmente el post
+      setHiddenPosts((prev) => ({ ...prev, [postId]: true }));
+    }
+  };
+
   const deleteComment = async (postId: string, commentId: string) => {
     if (!currentUserId) return;
     try {
@@ -352,6 +415,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
             <div className="tuenti-empty">Aún no hay novedades de tus amigos.</div>
           )}
           {posts.map((p) => (
+            hiddenPosts[p.id] ? null : (
             <div key={p.id} className="tuenti-post">
               <div className="tuenti-post-header">
                 <div className="tuenti-post-avatar">
@@ -367,9 +431,35 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                       {p.mediaUser?.name || p.user}
                     </Link>
                   </div>
-                  {p.content && (
-                    <div className="tuenti-status-bubble" style={{ marginTop: 6 }}>
-                      <div className="tuenti-status-text">{p.content}</div>
+                  {!hiddenPosts[p.id] && p.content && (
+                    <div className="tuenti-status-bubble" style={{ marginTop: 6, position: 'relative' }}>
+                      {postEditingId === p.id ? (
+                        <div style={{ marginTop: 2 }}>
+                          <textarea
+                            value={postEditingDraft}
+                            onChange={(e) => setPostEditingDraft(e.target.value)}
+                            rows={2}
+                            style={{ width: '100%', fontSize: 13, padding: 8, border: '1px solid #ddd', borderRadius: 4 }}
+                          />
+                          <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                            <button className="tuenti-post-action-button" onClick={() => savePostEdit(p.id)}>Guardar</button>
+                            <button className="tuenti-post-action-button" onClick={cancelPostEdit}>Cancelar</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="tuenti-status-text">{postOverwrites[p.id] ?? p.content}</div>
+                      )}
+                      {currentUserId && p.authorId === currentUserId && postEditingId !== p.id && (
+                        <div className="tuenti-post-menu">
+                          <button className="tuenti-post-menu-trigger" onClick={() => togglePostMenu(p.id)}>⋯</button>
+                          {postMenusOpen[p.id] && (
+                            <div className="tuenti-post-menu-popover">
+                              <button className="tuenti-post-action-button" style={{ padding: '6px 12px', display: 'block', width: '100%' }} onClick={() => startPostEdit(p.id, postOverwrites[p.id] ?? p.content)}>Editar</button>
+                              <button className="tuenti-post-action-button" style={{ padding: '6px 12px', display: 'block', width: '100%', color: '#b91c1c' }} onClick={() => deletePost(p.id)}>Eliminar</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                   <p className="tuenti-post-time">{p.time}</p>
@@ -539,6 +629,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                 </div>
               </div>
             </div>
+            )
           ))}
         </div>
       </div>
