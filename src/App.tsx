@@ -4,8 +4,11 @@ import { AuthProvider } from './lib/auth';
 import { AlertProvider } from './contexts/AlertContext';
 import GlobalAlert from './components/ui/GlobalAlert';
 import Login from './pages/Login';
+import LoginMobile from './pages/LoginMobile';
+import { useIsMobile } from './hooks/useDeviceDetection';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
+import DashboardMobile from './pages/DashboardMobile';
 import Settings from './pages/Settings';
 import { ChatProvider } from './contexts/ChatContext';
 import Profile from './pages/Profile';
@@ -44,6 +47,17 @@ import './styles/tuenti-alerts.css';
 
 setupIonicReact();
 
+// Componente que renderiza Login o LoginMobile según el dispositivo
+const ConditionalLogin: React.FC = () => {
+  const isMobile = useIsMobile();
+  return isMobile ? <LoginMobile /> : <Login />;
+};
+
+const ConditionalDashboard: React.FC = () => {
+  const isMobile = useIsMobile();
+  return isMobile ? <DashboardMobile /> : <Dashboard />;
+};
+
 const App: React.FC = () => (
   <IonApp>
     <AlertProvider>
@@ -52,9 +66,9 @@ const App: React.FC = () => (
           <BrowserRouter basename={import.meta.env.BASE_URL}>
             <IonRouterOutlet>
               <Switch>
-              <Route exact path="/login" component={Login} />
+              <Route exact path="/login" component={ConditionalLogin} />
               <Route exact path="/reset-password" component={ResetPassword} />
-              <Route exact path="/dashboard" component={Dashboard} />
+              <Route exact path="/dashboard" component={ConditionalDashboard} />
               <Route exact path="/settings" component={Settings} />
               <Route exact path="/profile-id=:username" component={PublicProfile} />
               {/* Soporte alternativo para /profile-id/:username por compatibilidad */}

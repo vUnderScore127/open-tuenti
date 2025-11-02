@@ -1,0 +1,109 @@
+/* Barra de navegación inferior de Tuenti */
+
+.tuenti-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-image: url("../../../public/noise.KmQE111qYh.png"), linear-gradient(to bottom, #5785B6 0%, #3C6EA3 100%);
+  background-size: auto, cover;
+  background-repeat: repeat, no-repeat;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tuenti-bottom-nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  max-width: 100%;
+}
+
+.tuenti-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  min-width: 60px;
+  text-decoration: none;
+}
+
+.tuenti-bottom-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.tuenti-bottom-nav-item.active {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.tuenti-bottom-nav-icon {
+  font-size: 24px;
+  margin-bottom: 4px;
+  transition: all 0.2s ease;
+}
+
+.tuenti-bottom-nav-item.active .tuenti-bottom-nav-icon {
+  transform: scale(1.1);
+}
+
+.tuenti-bottom-nav-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.tuenti-bottom-nav-item.active .tuenti-bottom-nav-label {
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 320px) {
+  .tuenti-bottom-nav-item {
+    padding: 6px 8px;
+    min-width: 50px;
+  }
+  
+  .tuenti-bottom-nav-icon {
+    font-size: 20px;
+  }
+  
+  .tuenti-bottom-nav-label {
+    font-size: 10px;
+  }
+}
+
+/* Ensure content doesn't overlap with bottom nav */
+.has-bottom-nav {
+  padding-bottom: 80px;
+}
+
+/* Animation for active state */
+@keyframes bounce {
+  0%, 20%, 60%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-4px);
+  }
+  80% {
+    transform: translateY(-2px);
+  }
+}
+
+.tuenti-bottom-nav-item.active .tuenti-bottom-nav-icon {
+  animation: bounce 0.6s ease;
+}

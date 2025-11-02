@@ -1,0 +1,626 @@
+/* tuenti-login-mobile.css - Estilos específicos para la versión móvil del login */
+
+/* Contenedor principal del login móvil */
+.mobile-login-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* El fondo se aplica via style inline para mantener consistencia con PC */
+}
+
+/* Contenedor del logo */
+.mobile-logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px 30px 20px;
+}
+
+.mobile-logo {
+  max-width: 320px;
+  height: auto;
+}
+
+/* Feature sections */
+.mobile-features {
+  padding: 20px 30px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.mobile-feature {
+  margin-bottom: 25px;
+}
+
+.mobile-feature-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mobile-feature-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 12px;
+  filter: brightness(0) invert(1);
+}
+
+.mobile-feature h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  text-shadow: 0 1px #4a7399;
+  margin: 0;
+}
+
+.mobile-feature p {
+  font-size: 13px;
+  color: #b6cddd;
+  line-height: 1.4;
+  margin: 0;
+  margin-left: 44px;
+}
+
+/* Action buttons */
+.mobile-actions {
+  padding: 30px 40px 40px;
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+  transition: all 0.3s ease-out;
+}
+
+.mobile-actions.fade-out {
+  animation: fadeOut 0.3s ease-out;
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+.mobile-btn {
+  width: 100%;
+  max-width: 320px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  margin: 0 auto 18px;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+.mobile-btn-primary {
+  background: linear-gradient(to bottom, #6ba6cd 0%, #4a7399 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.mobile-btn-primary:hover {
+  background: linear-gradient(to bottom, #7bb0d1 0%, #5a839d 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.mobile-btn-secondary {
+  background: linear-gradient(to bottom, #8bc34a 0%, #689f38 100%);
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.mobile-btn-secondary:hover {
+  background: linear-gradient(to bottom, #9ccc65 0%, #7cb342 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+}
+
+/* Separador entre botones */
+.mobile-separator {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin: 25px 0;
+}
+
+.mobile-separator-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mobile-separator-text {
+  padding: 0 15px;
+  color: #b6cddd;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .mobile-content {
+    padding: 20px 15px;
+  }
+  
+  .mobile-logo-container {
+    padding: 20px 0;
+  }
+  
+  .mobile-logo {
+    max-width: 280px;
+  }
+  
+  .mobile-features {
+    padding: 15px 30px;
+  }
+  
+  .mobile-actions {
+    padding: 25px 30px 35px;
+  }
+  
+  .mobile-btn {
+    max-width: 280px;
+    padding: 14px 20px;
+    font-size: 17px;
+  }
+}
+
+/* Formulario de Login Inline */
+.mobile-login-form {
+  max-width: 320px;
+  margin: 30px auto 0;
+  padding: 20px;
+  text-align: center;
+  animation: slideInUp 0.4s ease-out;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Animaciones para transiciones suaves */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+}
+
+.login-form-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 30px;
+  position: relative;
+  animation: slideInUp 0.5s ease-out 0.1s both;
+}
+
+.login-form-title {
+  font-family: 'Tuenti', Arial, sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  color: white;
+  margin: 0;
+  text-align: center;
+  flex: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.login-form-back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  text-decoration: none;
+  display: inline-block;
+}
+
+.login-form-back:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-50%) translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.login-form {
+  margin-bottom: 25px;
+  text-align: left;
+}
+
+/* Nuevos estilos para campos de entrada basados en desktop */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+  animation: slideInUp 0.5s ease-out 0.2s both;
+}
+
+.input-group:nth-child(2) {
+  animation-delay: 0.3s;
+}
+
+.login-form .field-label {
+  color: #fff !important;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  margin-bottom: 6px;
+  cursor: default;
+  font-family: 'Tuenti', Arial, sans-serif;
+  letter-spacing: 0.3px;
+}
+
+.field-input {
+  font-size: 15px;
+  border: solid 2px #43698f;
+  border-top-color: #274b5a;
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 6px 5px -5px rgba(0, 0, 0, 0.5) inset;
+  background: #fff;
+  border-radius: 8px;
+  width: 100%;
+  height: 44px;
+  padding: 12px 14px;
+  margin: 0;
+  transition: all 0.4s ease-out;
+  font-family: 'Tuenti', Arial, sans-serif;
+  font-weight: 500;
+  color: #333;
+  outline: none;
+}
+
+.field-input::placeholder {
+  color: #999;
+  font-weight: 400;
+  opacity: 1;
+}
+
+.field-input:focus {
+  box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.2), 0 6px 5px -5px rgba(0, 0, 0, 0.5) inset, 0 0 15px -3px rgba(255, 255, 255, 0.6);
+  border-color: #5a7ba8;
+  transform: translateY(-1px);
+}
+
+.field-input:focus::placeholder {
+  color: #bbb;
+}
+
+/* Estilos antiguos removidos - ahora se usan .input-group y .field-input */
+
+
+
+
+
+/* Botón de envío del formulario */
+.login-submit-btn {
+  background: linear-gradient(to bottom, rgba(144, 206, 234, 1) 0%, rgba(115, 197, 239, 1) 100%) !important;
+  box-shadow: 1px 1px 1px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.2) !important;
+  height: 42px !important;
+  width: auto !important;
+  min-width: 120px;
+  max-width: 160px;
+  margin: 20px auto 0 !important;
+  padding: 0 24px !important;
+  color: #FFF !important;
+  text-shadow: 0 -1px #8bc0d9 !important;
+  font-size: 14px !important;
+  font-weight: bold !important;
+  border: 0 !important;
+  cursor: pointer;
+  border-radius: 3px !important;
+  transition: all 0.2s ease;
+  display: block;
+  text-decoration: none;
+  animation: slideInUp 0.5s ease-out 0.4s both;
+  font-family: 'Tuenti', Arial, sans-serif !important;
+  text-align: center;
+  line-height: 42px;
+  
+  /* Override Ionic button variables */
+  --background: transparent !important;
+  --background-activated: transparent !important;
+  --background-focused: transparent !important;
+  --background-hover: transparent !important;
+  --border-width: 0 !important;
+  --border-style: none !important;
+  --border-color: transparent !important;
+  --box-shadow: none !important;
+  --padding-start: 0 !important;
+  --padding-end: 0 !important;
+  --padding-top: 0 !important;
+  --padding-bottom: 0 !important;
+  --color: #FFF !important;
+}
+
+.login-submit-btn:hover {
+  background: linear-gradient(to bottom, #7bb0d1 0%, #5a839d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  
+  /* Ensure Ionic variables stay overridden on hover */
+  --background: transparent;
+  --background-hover: transparent;
+}
+
+.login-form-footer {
+  margin-top: 20px;
+  animation: slideInUp 0.5s ease-out 0.5s both;
+  text-align: center;
+}
+
+.forgot-password {
+  margin: 0;
+  font-family: 'Tuenti', Arial, sans-serif;
+  font-size: 14px;
+}
+
+.forgot-link {
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.forgot-link:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive para formulario inline */
+@media (max-width: 480px) {
+  .mobile-login-form {
+    padding: 20px 15px;
+    margin: 20px 15px 0;
+    max-width: calc(100% - 30px);
+  }
+  
+  .login-form-title {
+    font-size: 21px;
+  }
+  
+  .login-form-back {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+  
+  .login-input-item {
+    --padding-start: 15px;
+    --padding-end: 15px;
+    --padding-top: 12px;
+    --padding-bottom: 12px;
+    margin-bottom: 18px;
+  }
+  
+  .login-submit-btn {
+    font-size: 16px;
+    padding: 14px 20px;
+  }
+}
+
+@media (max-width: 360px) {
+  .mobile-login-form {
+    padding: 18px 12px;
+    margin: 15px 10px 0;
+    max-width: calc(100% - 20px);
+  }
+  
+  .login-form-title {
+    font-size: 19px;
+  }
+  
+  .login-form-header {
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+  }
+  
+  .login-input-item {
+    --padding-start: 12px;
+    --padding-end: 12px;
+    margin-bottom: 16px;
+  }
+  
+  .login-submit-btn {
+    font-size: 15px;
+    padding: 12px 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .mobile-content {
+    padding: 15px 10px;
+  }
+  
+  .mobile-logo-container {
+    padding: 15px 0;
+  }
+  
+  .mobile-logo {
+    max-width: 240px;
+  }
+  
+  .mobile-features {
+    padding: 15px 25px;
+  }
+  
+  .mobile-feature h3 {
+    font-size: 20px;
+  }
+  
+  .mobile-feature p {
+    font-size: 15px;
+  }
+  
+  .mobile-actions {
+    padding: 20px 25px 30px;
+  }
+  
+  .mobile-btn {
+    max-width: 260px;
+    padding: 12px 18px;
+    font-size: 16px;
+  }
+}
+
+/* Estilos para la pantalla de carga móvil */
+.mobile-loading-container {
+  min-height: 100vh;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.mobile-loading-header {
+  padding: 20px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.mobile-loading-text {
+  color: #333;
+  font-size: 16px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  text-align: left;
+}
+
+.mobile-loading-email {
+  font-weight: bold;
+  color: #6e90bc;
+}
+
+.mobile-loading-progress {
+  font-weight: bold;
+  color: #333;
+}
+
+.mobile-progress-container {
+  margin: 0 20px 20px;
+  height: 8px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #e0e0e0;
+}
+
+.mobile-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6e90bc 0%, #426990 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.mobile-loading-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.mobile-birthday-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  padding: 20px;
+  max-width: 100%;
+  width: 100%;
+}
+
+.mobile-birthday-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.mobile-birthday-logo {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-logo-small {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.mobile-birthday-text {
+  flex: 1;
+  color: #333;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.mobile-birthday-text p {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.mobile-birthday-text p:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-birthday-text strong {
+  color: #6e90bc;
+  font-weight: 600;
+}

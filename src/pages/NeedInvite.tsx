@@ -1,11 +1,26 @@
 import React from 'react'
+import { useHistory } from 'react-router-dom'
+import { useIsMobile } from '../hooks/useDeviceDetection'
 import '../styles/tuenti-login.css'
 
 export default function NeedInvite() {
+  const history = useHistory()
+  const isMobile = useIsMobile()
+
+  const handleGoBack = () => {
+    history.goBack() // Volver a la página anterior
+  }
+
   return (
     <div className="nSplash">
       <div className="need-invite-container">
         <div className="need-invite-panel">
+          {isMobile && (
+            <button className="mobile-back-button" onClick={handleGoBack}>
+              ← Volver
+            </button>
+          )}
+          
           <div className="tuenti-logo">
             <img src="/open-tuenti/Logo_tuenti_positivo_color.png" alt="Tuenti" />
           </div>

@@ -30,7 +30,7 @@ const ResetPassword: React.FC = () => {
       setToastMessage('Revisa tu bandeja de entrada para restablecer tu contraseña.');
       setShowToast(true);
       setTimeout(() => {
-        history.push('/login');
+        window.location.href = `${window.location.origin}${import.meta.env.BASE_URL}login`;
       }, 2000);
     } catch (error: any) {
       setToastMessage(error.message || 'Error al enviar el email');
@@ -164,7 +164,7 @@ const ResetPassword: React.FC = () => {
                       
                       <button
                         type="button"
-                        onClick={() => history.push('/login')}
+                        onClick={() => window.location.href = `${window.location.origin}${import.meta.env.BASE_URL}login`}
                         disabled={isLoading}
                         style={{
                           background: '#f5f5f5',
