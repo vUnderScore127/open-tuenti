@@ -145,8 +145,8 @@ const Status: React.FC = () => {
                 </div>
                 <p className="tuenti-post-time">{new Date(post.created_at).toLocaleString()}</p>
                 {post.content && (
-                  <div style={{ background: '#f7f7f7', border: '1px solid #eee', borderRadius: 4, padding: 12, marginTop: 8 }}>
-                    {post.content}
+                  <div className="tuenti-status-bubble" style={{ marginTop: 8 }}>
+                    <div className="tuenti-status-text">{post.content}</div>
                   </div>
                 )}
 

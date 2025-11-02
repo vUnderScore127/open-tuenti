@@ -366,8 +366,12 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                     <Link to={p.authorId && currentUserId === p.authorId ? '/profile' : `/profile/${p.authorId}`} className="tuenti-post-author" style={{ textDecoration: 'none' }}>
                       {p.mediaUser?.name || p.user}
                     </Link>
-                    {p.content && <span className="tuenti-post-action">{p.content}</span>}
                   </div>
+                  {p.content && (
+                    <div className="tuenti-status-bubble" style={{ marginTop: 6 }}>
+                      <div className="tuenti-status-text">{p.content}</div>
+                    </div>
+                  )}
                   <p className="tuenti-post-time">{p.time}</p>
                   {p.image && (
                     <div className="tuenti-post-image">

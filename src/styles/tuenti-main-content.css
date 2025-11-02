@@ -200,6 +200,49 @@
   min-width: 0;
 }
 
+/* Estado dentro de bocadillo (estilo Tuenti clásico) */
+.tuenti-status-bubble {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  background-image: url("/open-tuenti/noise.KmQE111qYh.png"), linear-gradient(180deg, #f9f9f9 0%, #f6f6f6 100%);
+  background-blend-mode: overlay;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #333;
+}
+
+.tuenti-status-bubble::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 14px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 7px solid #ddd; /* borde del bocadillo */
+}
+
+.tuenti-status-bubble::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 14px;
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+  border-right: 6px solid #f7f7f7; /* relleno del bocadillo (match background) */
+}
+
+.tuenti-status-text {
+  font-size: 13px;
+  line-height: 1.45;
+  word-wrap: break-word;
+}
+
 .tuenti-post-meta {
   display: flex;
   align-items: center;
