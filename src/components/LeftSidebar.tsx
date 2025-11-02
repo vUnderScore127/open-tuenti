@@ -9,17 +9,17 @@ type BasicUserProfile = { id: string; first_name?: string; last_name?: string; a
 
 export default function LeftSidebar({ onOpenNotification }: { onOpenNotification?: (type: 'comments' | 'tags') => void }) {
   const { user: authUser, loading: authLoading } = useAuth()
-  const history = useHistory()
   const [userProfile, setUserProfile] = useState<BasicUserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [displayName, setDisplayName] = useState<string>('')
-  const sidebarRef = useRef<HTMLDivElement | null>(null)
-  const profileCardRef = useRef<HTMLDivElement | null>(null)
+  const [displayName, setDisplayName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarLoading, setAvatarLoading] = useState(true)
   const [notifCounts, setNotifCounts] = useState<{ postsWithComments: number; photoTags: number; photoComments: number }>({ postsWithComments: 0, photoTags: 0, photoComments: 0 })
   const [postsWithCommentsIds, setPostsWithCommentsIds] = useState<string[]>([])
   const [singlePhotoWithCommentsMediaId, setSinglePhotoWithCommentsMediaId] = useState<string | null>(null)
-  // Evitar bucles de creación de perfil (eliminado fallback de creación)
-  // const triedCreateProfileRef = useRef<boolean>(false)
+  const sidebarRef = useRef<HTMLDivElement>(null)
+  const profileCardRef = useRef<HTMLDivElement>(null)
+  const history = useHistory()
 
   const getInstantNameFromMetadata = (): string => {
     try {
@@ -30,7 +30,7 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
       if (full) return full
       const alt = String(meta.full_name || meta.name || '').trim()
       return alt || ''
-    } catch {
+    } catch (e) {
       return ''
     }
   }
@@ -46,10 +46,16 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
         // Usuario no autenticado cuando ya terminó la inicialización de auth
         setUserProfile(null)
         setLoading(false)
+        setAvatarUrl(null)
+        setAvatarLoading(false)
         return
       }
 
+
+
       setLoading(true)
+      setAvatarLoading(true)
+      
       // Fijar nombre instantáneo desde metadatos si existe (sin email)
       const metaName = getInstantNameFromMetadata()
       if (metaName) setDisplayName(metaName)
@@ -61,6 +67,13 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
         if (cachedRaw) {
           const cached: BasicUserProfile = JSON.parse(cachedRaw)
           setUserProfile(cached)
+          
+          // Cargar avatar instantáneamente desde caché
+          if (cached.avatar_url) {
+            setAvatarUrl(cached.avatar_url)
+            setAvatarLoading(false)
+          }
+          
           const name = `${cached.first_name || ''} ${cached.last_name || ''}`.trim()
           if (name) {
             setDisplayName(name)
@@ -70,20 +83,29 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
 
       try {
         const profile = await getBasicProfile(authUser.id)
-        console.log('📊 Profile loaded:', profile)
         setUserProfile(profile || null)
         // Actualizar caché y nombre
         if (profile) {
           try {
             localStorage.setItem(`basic_profile_${authUser.id}`, JSON.stringify(profile))
           } catch (_) {}
+          
+          // Actualizar avatar si es diferente al caché
+          if (profile.avatar_url !== avatarUrl) {
+            setAvatarUrl(profile.avatar_url || null)
+          }
+          setAvatarLoading(false)
+          
           const name = `${profile.first_name || ''} ${profile.last_name || ''}`.trim()
           if (name) {
             setDisplayName(name)
           }
+        } else {
+          setAvatarLoading(false)
         }
       } catch (error) {
         console.error('❌ Error loading user profile:', error)
+        setAvatarLoading(false)
       } finally {
         setLoading(false)
       }
@@ -216,15 +238,17 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
         <div className="tuenti-profile-card" ref={profileCardRef}>
           <div className="tuenti-profile-header">
             <div className="tuenti-profile-avatar">
-              {loading ? (
+              {avatarLoading ? (
                 <div className="tuenti-loading-skeleton" style={{ width: '100%', height: '100%' }} />
-              ) : userProfile?.avatar_url ? (
+              ) : avatarUrl ? (
                 <img 
-                  src={userProfile.avatar_url} 
+                  src={avatarUrl} 
                   alt={displayName || 'Perfil'}
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
+                    setAvatarUrl(null)
                   }}
+                  onLoad={() => setAvatarLoading(false)}
                 />
               ) : (
                 <div className="tuenti-profile-avatar-placeholder">
@@ -234,7 +258,7 @@ export default function LeftSidebar({ onOpenNotification }: { onOpenNotification
             </div>
             <div className="tuenti-profile-info">
               <div className="tuenti-profile-name">
-                {displayName}
+                {displayName || authUser?.email?.split('@')[0] || 'Usuario'}
               </div>
               <div className="tuenti-profile-stats">
                 <div className="tuenti-profile-stats-icon">

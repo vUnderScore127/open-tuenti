@@ -22,9 +22,11 @@ const Profile: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const history = useHistory();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Cambiado a false para eliminar pantalla de carga
   const [friends, setFriends] = useState<Friend[]>([]);
   const [statusText, setStatusText] = useState("");
+
+
 
   useEffect(() => {
     if (user) {
@@ -33,22 +35,101 @@ const Profile: React.FC = () => {
     }
   }, [user, userId]);
 
-  const loadProfile = async () => {
+  const loadProfile = async (retryCount = 0) => {
     try {
       const profileId = userId || user?.id;
-      if (profileId) {
-        const profile = await getUserProfile(profileId);
+      if (!profileId) return;
+
+      // Intentar cargar desde caché primero
+      const cacheKey = `profile_${profileId}`;
+      const cachedProfile = localStorage.getItem(cacheKey);
+      
+      if (cachedProfile) {
+        try {
+          const parsed = JSON.parse(cachedProfile);
+          // Verificar si el caché tiene el nuevo formato con timestamp
+          if (parsed.profile && parsed.expires) {
+            // Verificar si el caché no ha expirado
+            if (Date.now() < parsed.expires) {
+              setUserProfile(parsed.profile);
+            } else {
+              // Caché expirado, limpiar
+              localStorage.removeItem(cacheKey);
+            }
+          } else {
+            // Formato antiguo, usar directamente pero actualizar después
+            setUserProfile(parsed);
+          }
+        } catch (e) {
+          console.warn('Error parsing cached profile:', e);
+          // Limpiar caché corrupto
+          localStorage.removeItem(cacheKey);
+        }
+      }
+
+      // Cargar desde la base de datos con reintentos
+      setLoading(true);
+      const profile = await getUserProfile(profileId);
+      if (profile) {
         setUserProfile(profile);
+        // Guardar en caché con timestamp para expiración
+        const cacheData = {
+          profile,
+          timestamp: Date.now(),
+          expires: Date.now() + (5 * 60 * 1000) // 5 minutos
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+      } else if (retryCount < 2) {
+        // Reintentar hasta 2 veces si falla
+        console.warn(`Retrying profile load, attempt ${retryCount + 1}`);
+        setTimeout(() => loadProfile(retryCount + 1), 1000);
+        return;
       }
     } catch (error) {
       console.error('Error loading profile:', error);
+      if (retryCount < 2) {
+        // Reintentar en caso de error
+        console.warn(`Retrying profile load after error, attempt ${retryCount + 1}`);
+        setTimeout(() => loadProfile(retryCount + 1), 1000);
+        return;
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const loadFriends = async () => {
+  const loadFriends = async (retryCount = 0) => {
     try {
+      const profileId = userId || user?.id;
+      if (!profileId) return;
+
+      // Intentar cargar amigos desde caché
+      const friendsCacheKey = `friends_${profileId}`;
+      const cachedFriends = localStorage.getItem(friendsCacheKey);
+      
+      if (cachedFriends) {
+        try {
+          const parsed = JSON.parse(cachedFriends);
+          // Verificar si el caché tiene el nuevo formato con timestamp
+          if (parsed.friends && parsed.expires) {
+            // Verificar si el caché no ha expirado
+            if (Date.now() < parsed.expires) {
+              setFriends(parsed.friends);
+            } else {
+              // Caché expirado, limpiar
+              localStorage.removeItem(friendsCacheKey);
+            }
+          } else {
+            // Formato antiguo, usar directamente
+            setFriends(parsed);
+          }
+        } catch (e) {
+          console.warn('Error parsing cached friends:', e);
+          localStorage.removeItem(friendsCacheKey);
+        }
+      }
+
+      // Cargar amigos desde la base de datos con reintentos
       const { data, error } = await supabase
         .from('friendships')
         .select(`
@@ -62,11 +143,18 @@ const Profile: React.FC = () => {
             username
           )
         `)
-        .eq('user_id', user?.id)
+        .eq('user_id', profileId)
         .eq('status', 'accepted')
         .limit(8);
 
-      if (error) throw error;
+      if (error) {
+        if (retryCount < 2) {
+          console.warn(`Retrying friends load, attempt ${retryCount + 1}`);
+          setTimeout(() => loadFriends(retryCount + 1), 1000);
+          return;
+        }
+        throw error;
+      }
 
       const friendsList = data?.map(item => ({
         id: (item.profiles as any).id,
@@ -78,8 +166,19 @@ const Profile: React.FC = () => {
       })) || [];
 
       setFriends(friendsList);
+      // Guardar en caché con timestamp para expiración
+      const cacheData = {
+        friends: friendsList,
+        timestamp: Date.now(),
+        expires: Date.now() + (3 * 60 * 1000) // 3 minutos para amigos
+      };
+      localStorage.setItem(friendsCacheKey, JSON.stringify(cacheData));
     } catch (error) {
       console.error('Error loading friends:', error);
+      if (retryCount < 2) {
+        console.warn(`Retrying friends load after error, attempt ${retryCount + 1}`);
+        setTimeout(() => loadFriends(retryCount + 1), 1000);
+      }
     }
   };
 
@@ -102,13 +201,14 @@ const Profile: React.FC = () => {
     return user?.email || user?.id || ''
   })();
 
-  if (!user || loading) {
+  // Eliminar la pantalla de carga - mostrar directamente el contenido
+  if (!user) {
     return (
       <IonPage>
         <div className="min-h-screen bg-white flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-3xl font-bold text-blue-600 mb-2">Tuentis</h1>
-            <p className="text-gray-600">Cargando...</p>
+            <p className="text-gray-600">Debes iniciar sesión para ver tu perfil.</p>
           </div>
         </div>
       </IonPage>
@@ -125,12 +225,50 @@ const Profile: React.FC = () => {
             {/* Columna Izquierda */}
             <div className="tuenti-left-sidebar">
               {/* Foto de perfil */}
-              <div className="profile-photo-section">
-                <img 
-                  src={userProfile?.avatar_url || `${import.meta.env.BASE_URL}people.svg`} 
-                  alt={displayName}
-                  className="profile-main-photo"
-                />
+              <div className="profile-photo-section" style={{ position: 'relative' }}>
+                {loading && !userProfile?.avatar_url ? (
+                  <div className="profile-main-photo bg-gray-200 animate-pulse"></div>
+                ) : (
+                  <img 
+                    src={userProfile?.avatar_url || '/people.svg'} 
+                    alt={displayName}
+                    className="profile-main-photo"
+                    onError={(e) => {
+                      // Fallback a imagen por defecto si hay error
+                      const target = e.target as HTMLImageElement
+                      if (target.src !== '/people.svg') {
+                        target.src = '/people.svg'
+                      }
+                    }}
+                  />
+                )}
+                
+                {/* Botón "Cambiar foto de perfil" - solo para el perfil propio */}
+                {!userId && user && userProfile && (
+                  <div 
+                    className="change-photo-button"
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      color: 'white',
+                      padding: '4px 8px',
+                      borderRadius: '4px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      zIndex: 10,
+                      whiteSpace: 'nowrap'
+                    }}
+                    onClick={() => {
+                      // TODO: Implementar funcionalidad de cambio de foto
+                      alert('Funcionalidad de cambio de foto próximamente')
+                    }}
+                  >
+                    Cambiar foto de perfil
+                  </div>
+                )}
               </div>
 
               {/* Mis sitios */}

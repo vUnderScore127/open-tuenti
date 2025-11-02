@@ -90,14 +90,24 @@ const Settings: React.FC = () => {
   // Cargar perfil del usuario
   useEffect(() => {
     const loadUserProfile = async () => {
+      console.log('🔍 loadUserProfile iniciado, user:', user);
       if (user) {
-        const { data } = await supabase
+        console.log('👤 Usuario encontrado, ID:', user.id);
+        const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
         
+        console.log('📊 Datos del perfil obtenidos:', data);
+        console.log('❌ Error al obtener perfil:', error);
+        
         if (data) {
+          console.log('✅ Estableciendo userProfile y formData con:', {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email
+          });
           setUserProfile(data);
           setFormData({
             first_name: data.first_name || '',
@@ -116,12 +126,25 @@ const Settings: React.FC = () => {
             origin_country: data.origin_country || '',
             looking_for: data.looking_for || ''
           });
+        } else {
+          console.log('⚠️ No se encontraron datos del perfil');
         }
+      } else {
+        console.log('❌ No hay usuario autenticado');
       }
     };
     
     loadUserProfile();
   }, [user]);
+
+  // Debug: monitorear cambios en formData
+  useEffect(() => {
+    console.log('📝 formData actualizado:', {
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email: formData.email
+    });
+  }, [formData]);
 
   // Leer sección desde query param
   useEffect(() => {
@@ -211,14 +234,41 @@ const Settings: React.FC = () => {
   };
 
   const handleLogout = async () => {
+    console.log('🚪 Iniciando logout...');
     setIsLoading(true);
     try {
+      console.log('🚪 Llamando a signOut...');
       await signOut();
-      history.push('/login');
-    } catch (error: any) {
-      setToastMessage('Error al cerrar sesión');
+      console.log('🚪 SignOut completado, limpiando estado...');
+      
+      // Limpiar el estado local
+      setFormData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        gender: '',
+        birth_day: '',
+        birth_month: '',
+        birth_year: '',
+        country: '',
+        city: '',
+        province: '',
+        marital_status: '',
+        website: '',
+        phone: '',
+        origin_country: '',
+        looking_for: ''
+      });
+      
+      console.log('🚪 Estado limpiado, redirigiendo...');
+      
+      // Forzar recarga completa de la página a la raíz
+      window.location.href = window.location.origin + (import.meta.env.BASE_URL || '/');
+      
+    } catch (error) {
+      console.error('❌ Error al cerrar sesión:', error);
+      setToastMessage('No se pudo cerrar sesión. Inténtalo de nuevo.');
       setShowToast(true);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -249,83 +299,48 @@ const Settings: React.FC = () => {
 
   // Guardar cambios del perfil
 const handleSaveProfile = async () => {
-  if (!user) return;
+  if (!user) {
+    console.log('❌ No hay usuario autenticado');
+    return;
+  }
+  
+  console.log('🔄 Iniciando guardado del perfil...');
+  console.log('👤 Usuario:', user.id);
   
   setIsLoading(true);
-  // Fallback de seguridad: evitar quedarse cargando indefinidamente
-  const stopLoadingTimer = setTimeout(() => setIsLoading(false), 15000);
+  
   try {
-    // Convertir strings a números para los campos de fecha
-    const updateData: any = {
-      ...formData,
-      birth_day: formData.birth_day ? parseInt(formData.birth_day) : null,
-      birth_month: formData.birth_month ? parseInt(formData.birth_month) : null,
-      birth_year: formData.birth_year ? parseInt(formData.birth_year) : null,
+    // Prueba simple: solo actualizar first_name y last_name
+    const simpleUpdate = {
+      first_name: formData.first_name || '',
+      last_name: formData.last_name || ''
     };
     
-    // Calcular y añadir la edad si todos los campos de fecha están presentes
-    if (updateData.birth_day && updateData.birth_month && updateData.birth_year) {
-      updateData.age = calculateAge(updateData.birth_day, updateData.birth_month, updateData.birth_year);
-   
-    }
+    console.log('📤 Enviando actualización simple:', simpleUpdate);
     
-    // Usar función centralizada que normaliza género y calcula edad
-    let error: any = null
-    try {
-      // Sólo enviar campos relevantes del perfil para evitar conflictos innecesarios
-      const {
-        first_name,
-        last_name,
-        email,
-        gender,
-        birth_day,
-        birth_month,
-        birth_year,
-        age,
-        country,
-        city,
-        province,
-        marital_status,
-        website,
-        phone,
-        origin_country,
-        looking_for,
-      } = updateData;
-      await updateUserProfile(user.id, {
-        first_name,
-        last_name,
-        email,
-        gender,
-        birth_day,
-        birth_month,
-        birth_year,
-        age,
-        country,
-        city,
-        province,
-        marital_status,
-        website,
-        phone,
-        origin_country,
-        looking_for,
-      })
-    } catch (e) {
-      error = e
-    }
-          
+    // Usar directamente supabase en lugar de la función wrapper
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(simpleUpdate)
+      .eq('id', user.id);
+    
+    console.log('📥 Respuesta de Supabase:', { data, error });
+    
     if (error) {
-      console.error('Error detallado de Supabase:', error);
+      console.error('❌ Error de Supabase:', error);
       throw error;
     }
     
+    console.log('✅ Actualización exitosa');
     setToastMessage('Perfil actualizado correctamente');
     setShowToast(true);
+    
   } catch (error) {
-    console.error('Error al actualizar el perfil:', error);
+    console.error('💥 Error al actualizar el perfil:', error);
     setToastMessage(`Error al actualizar el perfil: ${(error as Error).message || 'Error desconocido'}`);
     setShowToast(true);
   } finally {
-    clearTimeout(stopLoadingTimer);
+    console.log('🏁 Finalizando guardado del perfil');
     setIsLoading(false);
   }
 };

@@ -40,13 +40,16 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   }
 
   useEffect(() => {
+    console.log('🔐 AuthProvider: Iniciando verificación de sesión');
     supabase.auth.getSession().then(({ data, error }) => {
+      console.log('🔐 AuthProvider: Sesión obtenida:', { data, error });
       if (error && (error as any)?.message?.toLowerCase().includes('invalid refresh token')) {
         // Sesión inválida: forzar sign out para limpiar estado y evitar bucles de refresco
         showAlert('Tu sesión ha caducado. Vuelve a iniciar sesión.')
         supabase.auth.signOut().then(() => redirectToLogin()).catch(() => redirectToLogin())
       }
       const session = data?.session
+      console.log('🔐 AuthProvider: Usuario de la sesión:', session?.user);
       // Inicializar o comprobar antigüedad de la sesión
       if (session?.user) {
         const key = 'lastAuthAt'
@@ -67,10 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 AuthProvider: Cambio de estado de auth:', { event, user: session?.user });
       // Si el SDK nos notifica que se cerró sesión, reflejarlo en UI
       if (event === 'SIGNED_OUT') {
+        console.log('🔐 AuthProvider: Usuario desconectado');
         setUser(null)
       } else {
+        console.log('🔐 AuthProvider: Estableciendo usuario:', session?.user);
         setUser(session?.user || null)
       }
       // Actualizar marca temporal al iniciar sesión
@@ -131,17 +137,37 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   }
 
   const signOut = async () => {
+    console.log('🔐 signOut: Iniciando proceso de logout');
     try {
       // Marcar offline ANTES de cerrar sesión, para que se propague al instante
       const uid = user?.id || (await supabase.auth.getUser()).data?.user?.id || null
+      console.log('🔐 signOut: UID para marcar offline:', uid);
       if (uid) {
         try {
           await supabase.from('profiles').update({ is_online: false }).eq('id', uid)
-        } catch (_) {}
+          console.log('🔐 signOut: Usuario marcado como offline');
+        } catch (e) {
+          console.warn('Error marcando offline:', e);
+        }
       }
     } finally {
+      console.log('🔐 signOut: Limpiando localStorage y estado');
+      // Limpiar localStorage
+      localStorage.removeItem('lastAuthAt');
+      
+      // Cerrar sesión en Supabase
+      console.log('🔐 signOut: Cerrando sesión en Supabase');
       const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      if (error) {
+        console.error('❌ Error en supabase.auth.signOut:', error);
+        throw error;
+      }
+      
+      console.log('🔐 signOut: Sesión cerrada, actualizando estado local');
+      // Forzar actualización del estado local
+      setUser(null);
+      setProfileEnsuredUid(null);
+      console.log('🔐 signOut: Proceso completado');
     }
   }
 
