@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase, getUserProfile, createStatusCommentNotification } from '../lib/supabase';
 import '../styles/tuenti-main-content.css';
@@ -23,7 +23,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
   const [isFocused, setIsFocused] = useState(false);
   const [commentBoxOpen, setCommentBoxOpen] = useState<Record<string, boolean>>({});
   const [commentsOpen, setCommentsOpen] = useState<Record<string, boolean>>({});
-  const [commentsByPost, setCommentsByPost] = useState<Record<string, { id: string; content: string; created_at: string; updated_at?: string; is_edited?: boolean; edit_history?: any[]; user_id: string; profiles?: { id?: string; first_name?: string; last_name?: string; avatar_url?: string } }[]>>({});
+  const [commentsByPost, setCommentsByPost] = useState<Record<string, { id: string; content: string; created_at: string; updated_at?: string; is_edited?: boolean; edit_history?: any[]; user_id: string; profiles?: { id?: string; first_name?: string; last_name?: string; avatar_url?: string; email?: string } }[]>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
   const [commentSubmitting, setCommentSubmitting] = useState<Record<string, boolean>>({});
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -44,11 +44,87 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
   const remainingChars = maxLength - statusText.length;
   const isNearLimit = remainingChars <= 20;
 
+  // Persistencia local por usuario (fallback si no hay tabla/políticas en Supabase)
+  const LOCAL_LIKES_KEY = 'tuentis_likes_by_user';
+  const localLikesForUser = useMemo(() => {
+    try {
+      const raw = localStorage.getItem(LOCAL_LIKES_KEY) || '{}';
+      const store = JSON.parse(raw);
+      return (currentUserId && store[currentUserId]) ? store[currentUserId] : {};
+    } catch {
+      return {} as Record<string, boolean>;
+    }
+  }, [currentUserId]);
+
+  const setLocalLiked = (postId: string, liked: boolean) => {
+    try {
+      const raw = localStorage.getItem(LOCAL_LIKES_KEY) || '{}';
+      const store = JSON.parse(raw);
+      const userMap = store[currentUserId || ''] || {};
+      userMap[postId] = liked;
+      store[currentUserId || ''] = userMap;
+      localStorage.setItem(LOCAL_LIKES_KEY, JSON.stringify(store));
+    } catch {}
+  };
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setCurrentUserId(data?.user?.id || null);
     });
   }, []);
+
+  // Cargar likes desde Supabase (post_likes o fallback post_activity) y fusionar con localStorage
+  useEffect(() => {
+    const initLikes = async () => {
+      if (!Array.isArray(posts) || posts.length === 0) return;
+      const postIds = posts.map(p => String(p.id));
+      let counts: Record<string, number> = {};
+      let likedByMe = new Set<string>();
+
+      const tryFetch = async (table: 'post_likes' | 'post_activity') => {
+        const baseSel = table === 'post_activity'
+          ? supabase.from('post_activity').select('post_id, user_id, type').in('post_id', postIds).eq('type', 'like')
+          : supabase.from('post_likes').select('post_id, user_id').in('post_id', postIds);
+        const { data, error } = await baseSel;
+        if (error) throw error;
+        const rows = Array.isArray(data) ? data : [];
+        counts = {};
+        likedByMe = new Set<string>();
+        for (const r of rows as any[]) {
+          const pid = String(r.post_id);
+          counts[pid] = (counts[pid] || 0) + 1;
+          if (currentUserId && String(r.user_id) === String(currentUserId)) {
+            likedByMe.add(pid);
+          }
+        }
+      };
+
+      try {
+        await tryFetch('post_likes');
+      } catch (e1: any) {
+        console.warn('⚠️ No se pudo leer post_likes, intentando post_activity…', e1?.message || e1);
+        try {
+          await tryFetch('post_activity');
+        } catch (e2: any) {
+          console.warn('⚠️ No se pudo leer post_activity. Usando solo localStorage.', e2?.message || e2);
+          counts = {};
+          likedByMe = new Set<string>();
+        }
+      }
+
+      setLikesByPost(prev => {
+        const next = { ...prev };
+        for (const pid of postIds) {
+          const localLiked = !!(localLikesForUser && localLikesForUser[pid]);
+          const liked = likedByMe.has(pid) || localLiked;
+          const count = counts[pid] ?? (liked ? 1 : 0);
+          next[pid] = { liked, count };
+        }
+        return next;
+      });
+    };
+    initLikes();
+  }, [posts, currentUserId, localLikesForUser]);
 
   const getTimeAgo = (timestamp: Date) => {
     const now = new Date();
@@ -108,7 +184,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
               content: (inserted as any)?.content || text,
               created_at: (inserted as any)?.created_at || new Date().toISOString(),
               user_id: userId,
-              profiles: profile ? { id: profile.id, first_name: profile.first_name, last_name: profile.last_name, avatar_url: profile.avatar_url } : undefined,
+              profiles: profile ? { id: profile.id, first_name: profile.first_name, last_name: profile.last_name, avatar_url: profile.avatar_url, email: (profile as any)?.email } : undefined,
             },
             ...(prev[postId] || []),
           ],
@@ -142,26 +218,38 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
         .limit(20);
       if (!fetchErr) {
         console.log('📥 submitComment: fetched comments count', (commentsData as any)?.length ?? 0);
+        console.debug('🔎 submitComment: raw commentsData', commentsData);
         // Enriquecer con nombres de perfiles en un segundo fetch
         const userIds = Array.from(new Set(((commentsData as any) || []).map((c: any) => c.user_id).filter(Boolean)));
-        let profileMap: Record<string, { id?: string; first_name?: string; last_name?: string; avatar_url?: string }> = {};
+        console.debug('🧾 submitComment: userIds for profile lookup', userIds);
+        let profileMap: Record<string, { id?: string; first_name?: string; last_name?: string; avatar_url?: string; email?: string }> = {};
         if (userIds.length > 0) {
           const { data: profilesData, error: profilesErr } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name, avatar_url')
+            .select('id, first_name, last_name, avatar_url, email')
             .in('id', userIds);
           if (!profilesErr) {
             (profilesData as any || []).forEach((p: any) => {
-              profileMap[p.id] = { id: p.id, first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url };
+              profileMap[p.id] = { id: p.id, first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url, email: p.email };
             });
+            console.debug('👥 submitComment: profilesData length', (profilesData as any)?.length ?? 0);
+            console.debug('📚 submitComment: built profileMap keys', Object.keys(profileMap));
           } else {
             console.warn('⚠️ submitComment: profiles fetch error', profilesErr);
           }
         }
-        const merged = ((commentsData as any) || []).map((c: any) => ({
-          ...c,
-          profiles: profileMap[c.user_id],
-        }));
+        const merged = ((commentsData as any) || []).map((c: any) => {
+          const prof = profileMap[c.user_id];
+          const name = `${prof?.first_name || ''} ${prof?.last_name || ''}`.trim();
+          if (!name) {
+            console.warn('⚠️ submitComment: empty author name', { user_id: c.user_id, profile: prof });
+          }
+          return {
+            ...c,
+            profiles: prof,
+          };
+        });
+        console.debug('🧩 submitComment: merged comments count', merged.length);
         setCommentsByPost((prev) => ({ ...prev, [postId]: merged }));
       }
       if (fetchErr) {
@@ -188,26 +276,38 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
         .limit(20);
       if (!error) {
         console.log('📥 toggleComments: fetched comments count', (commentsData as any)?.length ?? 0);
+        console.debug('🔎 toggleComments: raw commentsData', commentsData);
         // Cargar nombres de perfiles en un segundo paso
         const userIds = Array.from(new Set(((commentsData as any) || []).map((c: any) => c.user_id).filter(Boolean)));
-        let profileMap: Record<string, { id?: string; first_name?: string; last_name?: string; avatar_url?: string }> = {};
+        console.debug('🧾 toggleComments: userIds for profile lookup', userIds);
+        let profileMap: Record<string, { id?: string; first_name?: string; last_name?: string; avatar_url?: string; email?: string }> = {};
         if (userIds.length > 0) {
           const { data: profilesData, error: profilesErr } = await supabase
             .from('profiles')
-            .select('id, first_name, last_name, avatar_url')
+            .select('id, first_name, last_name, avatar_url, email')
             .in('id', userIds);
           if (!profilesErr) {
             (profilesData as any || []).forEach((p: any) => {
-              profileMap[p.id] = { id: p.id, first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url };
+              profileMap[p.id] = { id: p.id, first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url, email: p.email };
             });
+            console.debug('👥 toggleComments: profilesData length', (profilesData as any)?.length ?? 0);
+            console.debug('📚 toggleComments: built profileMap keys', Object.keys(profileMap));
           } else {
             console.warn('⚠️ toggleComments: profiles fetch error', profilesErr);
           }
         }
-        const merged = ((commentsData as any) || []).map((c: any) => ({
-          ...c,
-          profiles: profileMap[c.user_id],
-        }));
+        const merged = ((commentsData as any) || []).map((c: any) => {
+          const prof = profileMap[c.user_id];
+          const name = `${prof?.first_name || ''} ${prof?.last_name || ''}`.trim();
+          if (!name) {
+            console.warn('⚠️ toggleComments: empty author name', { user_id: c.user_id, profile: prof });
+          }
+          return {
+            ...c,
+            profiles: prof,
+          };
+        });
+        console.debug('🧩 toggleComments: merged comments count', merged.length);
         setCommentsByPost((prev) => ({ ...prev, [postId]: merged }));
       }
       if (error) {
@@ -428,7 +528,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                 <div className="tuenti-post-content">
                   <div className="tuenti-post-meta">
                     <Link to={p.authorId && currentUserId === p.authorId ? '/profile' : `/profile/${p.authorId}`} className="tuenti-post-author" style={{ textDecoration: 'none' }}>
-                      {p.mediaUser?.name || p.user}
+                      {p.mediaUser?.name}
                     </Link>
                   </div>
                   {!hiddenPosts[p.id] && p.content && (
@@ -479,17 +579,66 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                       className={`tuenti-post-action-button ${likePulseId === p.id ? 'like-pulse' : ''}`}
                       aria-label="Me gusta"
                       title="Me gusta"
-                      onClick={() => {
+                      onClick={async () => {
+                        const postId = String(p.id);
                         setLikesByPost(prev => {
-                          const cur = prev[p.id] || { liked: false, count: 0 };
+                          const cur = prev[postId] || { liked: false, count: 0 };
                           const nextLiked = !cur.liked;
                           const nextCount = Math.max(0, cur.count + (nextLiked ? 1 : -1));
                           if (nextLiked) {
-                            setLikePulseId(p.id);
+                            setLikePulseId(postId);
                             setTimeout(() => setLikePulseId(null), 360);
                           }
-                          return { ...prev, [p.id]: { liked: nextLiked, count: nextCount } };
+                          return { ...prev, [postId]: { liked: nextLiked, count: nextCount } };
                         });
+
+                        // Persistencia
+                        try {
+                          const { data: userData } = await supabase.auth.getUser();
+                          const uid = userData?.user?.id;
+                          if (!uid) {
+                            // Persistir al menos local
+                            const curLiked = !(likesByPost[postId]?.liked);
+                            setLocalLiked(postId, curLiked);
+                            return;
+                          }
+
+                          const curLiked = !(likesByPost[postId]?.liked);
+                          // Intentar post_likes primero
+                          const persist = async (table: 'post_likes' | 'post_activity') => {
+                            if (curLiked) {
+                              const payload = table === 'post_activity'
+                                ? { post_id: postId, user_id: uid, type: 'like' }
+                                : { post_id: postId, user_id: uid };
+                              const { error } = await supabase.from(table).insert(payload as any);
+                              if (error) throw error;
+                            } else {
+                              let q = supabase.from(table).delete().eq('post_id', postId).eq('user_id', uid);
+                              if (table === 'post_activity') q = q.eq('type', 'like');
+                              const { error } = await q;
+                              if (error) throw error;
+                            }
+                          };
+
+                          try {
+                            await persist('post_likes');
+                            setLocalLiked(postId, curLiked);
+                          } catch (e1: any) {
+                            console.warn('⚠️ No se pudo escribir en post_likes, probando post_activity…', e1?.message || e1);
+                            try {
+                              await persist('post_activity');
+                              setLocalLiked(postId, curLiked);
+                            } catch (e2: any) {
+                              console.error('❌ Persistencia de Me gusta falló en ambas tablas', { e1, e2 });
+                              // Mantener al menos local
+                              setLocalLiked(postId, curLiked);
+                            }
+                          }
+                        } catch (err) {
+                          console.error('❌ Error inesperado persisting like:', err);
+                          // Mantener al menos local
+                          setLocalLiked(String(p.id), !(likesByPost[String(p.id)]?.liked));
+                        }
                       }}
                       style={{
                         padding: '6px 8px',
@@ -580,7 +729,7 @@ export default function MainContent({ posts, onStatusSave, lastStatusText = '', 
                                 )}
                               </div>
                               <Link to={c.user_id === currentUserId ? '/profile' : `/profile/${c.user_id}`} style={{ fontWeight: 600, color: '#1f2937', textDecoration: 'none' }}>
-                                {c.profiles?.first_name || ''} {c.profiles?.last_name || ''}
+                                {(((c.profiles?.first_name || '') + ' ' + (c.profiles?.last_name || '')).trim())}
                               </Link>
                               <span style={{ color: '#999', marginLeft: 6 }}>{getTimeAgo(new Date(c.created_at))}</span>
                               {c.is_edited && (
